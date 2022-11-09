@@ -94,12 +94,24 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     def _compute_reward(self):
         dist_change = self.state["prev_dist"] - self.state["curr_dist"]
-        reward = (dist_change.x_val + dist_change.y_val + dist_change.z_val)
+        net_dist = dist_change.x_val + dist_change.y_val + dist_change.z_val
+        reward = net_dist * 2
         done = 0
+
         if self.state["collision"]:
             done = 1
+            reward = reward - 100
+
+        #Punishing drone for being idle
+        if (net_dist < 5):
+            done = 1
             reward = reward - 20
-        return reward, done
+        
+        #Cap on max height
+        if (dist_change.y_val > 20):
+            reward = reward - 20  
+
+        return reward, done 
 
     def step(self, action):
         self._do_action(action)
