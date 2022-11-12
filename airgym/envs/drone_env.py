@@ -17,11 +17,11 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.image_shape = image_shape
 
         self.state = {
+            "prev_position": np.zeros(3),
             "position": np.zeros(3),
             "collision": False,
             "prev_dist": np.zeros(3),
             "curr_dist": np.zeros(3),
-            "prev_position": np.zeros(3),
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
@@ -55,15 +55,14 @@ class  AirSimDroneEnvV1(AirSimEnv):
         im_final = np.array(image.resize((84, 84)).convert("L"))
 
         return im_final.reshape([84, 84, 1])
-    
+
     def get_destination(self):
         return airsim.Vector3r(10, 10, 10)
 
     def get_dist(self, position):
-        destination = self.get_destination()
-        dist = destination - position
-        return dist
+        return self.get_destination() - position
 
+    # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
         responses = self.drone.simGetImages([self.image_request])
         image = self.transform_obs(responses)
@@ -82,6 +81,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
         return image
 
+    # the actual movement of the drone
     def _do_action(self, action):
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
@@ -93,25 +93,65 @@ class  AirSimDroneEnvV1(AirSimEnv):
         ).join()
 
     def _compute_reward(self):
-        dist_change = self.state["prev_dist"] - self.state["curr_dist"]
-        net_dist = dist_change.x_val + dist_change.y_val + dist_change.z_val
-        reward = net_dist * 2
+        reward = 0
         done = 0
+        prev_l = self.state["prev_position"]
+        curr_l = self.state["position"]
+        target_l = self.get_destination()
+        # Here we find the distance from the previous location to the target location
+        # consider the target location x2 always
+        prev_dist_to_target = math.sqrt(pow(target_l.x_val - prev_l[0]) + pow(target_l.y_val - prev_l[1]) + pow(target_l.z_val - prev_l[2]))
+        # Here we find the distance from the current location to the target location
+        curr_dist_to_target = math.sqrt(pow(target_l.x_val - curr_l[0]) + pow(target_l.y_val - curr_l[1]) + pow(target_l.z_val - curr_l[2]))
 
-        if self.state["collision"]:
-            done = 1
-            reward = reward - 100
+        collision_status = self.drone.simGetCollisionInfo().has_collided
 
-        #Punishing drone for being idle
-        if (net_dist < 5):
+        # if there has been a collision then huge penalty and reset
+        if collision_status:
+            self.restart()
+
+        # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
+        if curr_dist_to_target == 0:
             done = 1
-            reward = reward - 20
+            return reward + 100, done
+
+        # if the drone does nothing and is in the same position give them minus 10
+        # to show being stagnant is not the best move
+        if prev_dist_to_target == curr_dist_to_target:
+            return reward-10, done
+
+        # if the prev_dist is less then curr_dist, then we got further from the target
+        # and give them a slight penalty to show they are going in the wrong direction
+        if prev_dist_to_target < curr_dist_to_target:
+            reward - (curr_dist_to_target - prev_dist_to_target)
+            return reward, done
+
+        # else the drone move closer to the target then its previous distance which is a +
+        # previous dist is greater then curr distance so it'll pass a positive value
+        reward + (prev_dist_to_target - curr_dist_to_target)
+        return reward, done
+
+
+    # def _compute_reward(self):
+    #    dist_change = self.state["prev_dist"] - self.state["curr_dist"]
+    #    net_dist = dist_change.x_val + dist_change.y_val + dist_change.z_val
+    #    reward = net_dist * 2
+    #    done = 0
+
+    #    if self.state["collision"]:
+    #        done = 1
+    #        reward = reward - 100
+
+        # Punishing drone for being idle
+    #    if (net_dist < 5):
+    #        done = 1
+    #        reward = reward - 20
         
-        #Cap on max height
-        if (dist_change.y_val > 20):
-            reward = reward - 20  
+        # Cap on max height
+    #    if (dist_change.y_val > 20):
+    #        reward = reward - 20
 
-        return reward, done 
+    #    return reward, done
 
     def step(self, action):
         self._do_action(action)
@@ -124,6 +164,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self._setup_flight()
         return self._get_obs()
 
+    # based on the action passed it does another action accossiated
     def interpret_action(self, action):
         if action == 0:
             quad_offset = (self.step_length, 0, 0)
