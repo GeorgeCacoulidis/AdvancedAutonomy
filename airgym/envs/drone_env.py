@@ -100,15 +100,15 @@ class  AirSimDroneEnvV1(AirSimEnv):
         target_l = self.get_destination()
         # Here we find the distance from the previous location to the target location
         # consider the target location x2 always
-        prev_dist_to_target = math.sqrt(pow(target_l.x_val - prev_l[0]) + pow(target_l.y_val - prev_l[1]) + pow(target_l.z_val - prev_l[2]))
+        prev_dist_to_target = math.sqrt(pow(target_l.x_val - prev_l.x_val, 2) + pow(target_l.y_val - prev_l.y_val, 2) + pow(target_l.z_val - prev_l.z_val, 2))
         # Here we find the distance from the current location to the target location
-        curr_dist_to_target = math.sqrt(pow(target_l.x_val - curr_l[0]) + pow(target_l.y_val - curr_l[1]) + pow(target_l.z_val - curr_l[2]))
+        curr_dist_to_target = math.sqrt(pow(target_l.x_val - curr_l.x_val, 2) + pow(target_l.y_val - curr_l.y_val, 2) + pow(target_l.z_val - curr_l.z_val, 2))
 
         collision_status = self.drone.simGetCollisionInfo().has_collided
 
         # if there has been a collision then huge penalty and reset
         if collision_status:
-            self.restart()
+            self.reset()
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
         if curr_dist_to_target == 0:
