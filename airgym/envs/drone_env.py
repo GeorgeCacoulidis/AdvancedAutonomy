@@ -92,9 +92,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
             5,
         ).join()
 
-     # in the near future make it so the drones z value and the grounds z value being 0 should always be in a set range
-    # if within that range punish
-    # its running in the same episode infinitly we need to stop an episode after a certain number of moves, it needs to lose like a video game
     def _compute_reward(self):
         reward = 0
         done = 0
