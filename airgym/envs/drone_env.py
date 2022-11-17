@@ -143,14 +143,18 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # to show being stagnant is not the best move
         elif prev_dist_to_target == curr_dist_to_target:
             self.negative_reward -= 10
+            reward -= 10
 
         # if the prev_dist is less then curr_dist, then we got further from the target
         # and give them a slight penalty to show they are going in the wrong direction
         elif prev_dist_to_target < curr_dist_to_target:
             if curr_dist_to_target > origin_dist_to_target:
                 self.negative_reward -= self.radius_loss_eq(curr_dist_to_target)
+                reward -= self.radius_loss_eq(curr_dist_to_target)
             else: 
                 self.negative_reward -= 10
+                reward -= 10
+
         
         # do we still need this?
         #Checks if the drone has drifted too far from the original distance and if we have a 
@@ -171,9 +175,11 @@ class  AirSimDroneEnvV1(AirSimEnv):
             else:
                 self.negative_reward = 0
                 self.threshold_start_time = time.time()
-        else:
-            if(reward < 0):
-                self.negative_reward = self.negative_reward + reward
+
+        # do we need? are we subtracting reward doubly for no reason?
+        #else:
+        #    if(reward < 0):
+        #        self.negative_reward = self.negative_reward + reward
 
         ###print("Previous distance to target:", prev_dist_to_target)
         ##print("Current distance to target:", curr_dist_to_target)
