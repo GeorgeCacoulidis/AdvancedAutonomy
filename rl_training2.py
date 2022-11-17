@@ -3,7 +3,7 @@ import gym
 import airgym
 import time
 
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -27,21 +27,29 @@ env = DummyVecEnv(
 env = VecTransposeImage(env)
 
 # Initialize RL algorithm type and parameters
-model = DQN(
+model = PPO(
     "CnnPolicy",
     env,
-    learning_rate=0.01,
-    verbose=1,
-    batch_size=32,
-    train_freq=4,
-    target_update_interval=10000,
-    learning_starts=10000,
-    buffer_size=500000,
-    max_grad_norm=10,
-    exploration_fraction=0.1,
-    exploration_final_eps=0.01,
-    device="cuda",
+    learning_rate=0.0003,
+    n_steps=2048,
+    batch_size=64,
+    n_epochs=10,
+    gamma=0.99,
+    gae_lambda=0.95,
+    clip_range=0.2,
+    clip_range_vf=None,
+    ent_coef=0.0,
+    vf_coef=0.5,
+    max_grad_norm=0.5,
+    use_sde=False,
+    sde_sample_freq=-1,
+    target_kl=None,
     tensorboard_log="./tb_logs/",
+    policy_kwargs=None,
+    verbose=1,
+    seed=None,
+    device="cuda",
+    _init_setup_model=True
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -49,10 +57,10 @@ callbacks = []
 eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
-    n_eval_episodes=5,
+    n_eval_episodes=1,
     best_model_save_path=".",
     log_path=".",
-    eval_freq=10000,
+    eval_freq=100,
 )
 callbacks.append(eval_callback)
 
@@ -62,9 +70,9 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=5e5,
-    tb_log_name="dqn_airsim_drone_run_" + str(time.time()),
+    tb_log_name="ppo_airsim_drone_run_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy")
+model.save("ppo_airsim_drone_policy")

@@ -66,7 +66,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return im_final.reshape([84, 84, 1])
 
     def get_destination(self):
-        return airsim.Vector3r(10, 10, 10)
+        return airsim.Vector3r(36, -75, -21)
 
     def get_dist(self, position):
         return self.get_destination() - position
@@ -130,7 +130,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
-            self.reset()
+            reward = -100
+            done = 1
+            return reward, done
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
         if curr_dist_to_target == 0:
@@ -173,9 +175,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
             if(reward < 0):
                 self.negative_reward = self.negative_reward + reward
 
-        print(collision_status)
-        print("Previous distance to target:", prev_dist_to_target)
-        print("Current distance to target:", curr_dist_to_target)
+        #print("Previous distance to target:", prev_dist_to_target)
+        #print("Current distance to target:", curr_dist_to_target)
+        #print("Current position is:", self.state["position"])
         return reward, done
 
     def step(self, action):
