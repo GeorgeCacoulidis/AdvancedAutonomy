@@ -107,7 +107,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
     #Punishes the drone for going farther than the original distance from the drone
     def radius_loss_eq(self, curr_dist_to_target):
         dist_change = curr_dist_to_target - self.origin_dist_to_target
-        loss = pow(2, -dist_change - 5)/(self.origin_dist_to_target/10 * pow(math.e, -dist_change))
+        loss = (25) / (1 + pow(self.origin_dist_to_target, 2) * pow(math.e, (-0.5 * dist_change)))
         return loss
 
 
@@ -175,8 +175,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
             if(reward < 0):
                 self.negative_reward = self.negative_reward + reward
 
-        #print("Previous distance to target:", prev_dist_to_target)
-        #print("Current distance to target:", curr_dist_to_target)
+        ###print("Previous distance to target:", prev_dist_to_target)
+        ##print("Current distance to target:", curr_dist_to_target)
         #print("Current position is:", self.state["position"])
         return reward, done
 
