@@ -30,12 +30,12 @@ env = VecTransposeImage(env)
 model = DQN(
     "CnnPolicy",
     env,
-    learning_rate=0.5,
+    learning_rate=0.0001,
     verbose=1,
     batch_size=32,
     train_freq=1,
     target_update_interval=1,
-    learning_starts=2,
+    learning_starts=10,
     buffer_size=500000,
     max_grad_norm=10,
     exploration_fraction=0.1,
@@ -49,7 +49,7 @@ callbacks = []
 eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
-    n_eval_episodes= 10,
+    n_eval_episodes=5,
     best_model_save_path=".",
     log_path=".",
     eval_freq=100,
@@ -61,8 +61,8 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e5,
-    tb_log_name="dqn_airsim_drone_run_edits" + str(time.time()),
+    total_timesteps=2e4,
+    tb_log_name="dqn_airsim_drone_run_1" + str(time.time()),
     **kwargs
 )
 

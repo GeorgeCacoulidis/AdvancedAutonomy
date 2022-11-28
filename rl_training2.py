@@ -30,26 +30,12 @@ env = VecTransposeImage(env)
 model = PPO(
     "CnnPolicy",
     env,
-    learning_rate=0.0003,
+    learning_rate=0.0001,
     n_steps=2048,
     batch_size=64,
-    n_epochs=10,
-    gamma=0.99,
-    gae_lambda=0.95,
-    clip_range=0.2,
-    clip_range_vf=None,
-    ent_coef=0.0,
-    vf_coef=0.5,
-    max_grad_norm=0.5,
-    use_sde=False,
-    sde_sample_freq=-1,
-    target_kl=None,
-    tensorboard_log="./tb_logs/",
-    policy_kwargs=None,
-    verbose=1,
-    seed=None,
-    device="cuda",
-    _init_setup_model=True
+    verbose=1, 
+    tensorboard_log="./tb_logs/", 
+    device="cuda"
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -57,7 +43,7 @@ callbacks = []
 eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
-    n_eval_episodes=1,
+    n_eval_episodes=100,
     best_model_save_path=".",
     log_path=".",
     eval_freq=100,
@@ -69,7 +55,7 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e5,
+    total_timesteps=2e4,
     tb_log_name="ppo_airsim_drone_run_" + str(time.time()),
     **kwargs
 )
