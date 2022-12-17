@@ -6,6 +6,7 @@ import pprint
 import torch
 import pandas
 
+
 # connect to the AirSim simulator
 client = airsim.VehicleClient()
 client.confirmConnection()

@@ -65,7 +65,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return im_final.reshape([84, 84, 1])
 
     def get_destination(self):
-        return airsim.Vector3r(36, -75, -21)
+        return airsim.Vector3r(12.326184272766113, 119.89775848388672, -3.789776563644409)
 
     def get_dist(self, position):
         return self.get_destination() - position
