@@ -67,4 +67,4 @@ model.learn(
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy")
+model.save("dqn_airsim_drone_policy_5000")

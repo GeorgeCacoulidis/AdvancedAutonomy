@@ -1,5 +1,6 @@
 import gym
-from stable_baselines3 import DQN
+import os
+from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -12,7 +13,7 @@ env = DummyVecEnv(
         lambda: Monitor(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
-                ip_address="127.0.0.2",
+                ip_address="127.0.0.1",
                 step_length=0.25,
                 image_shape=(84, 84, 1),
             )
@@ -23,7 +24,7 @@ env = DummyVecEnv(
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
 env = VecTransposeImage(env)
 
-model = DQN.load("dqn_airsim_drone_policy2.zip")
+model = PPO.load("./checkpoint_logs/ppo_rl_model_1500_steps.zip")
 
 obs = env.reset()
 while True:

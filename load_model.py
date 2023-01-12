@@ -26,7 +26,7 @@ env = DummyVecEnv(
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
 env = VecTransposeImage(env)
 
-model = DQN.load("dqn_airsim_drone_policy.zip")
+model = DQN.load("best_model.zip")
 
 obs = env.reset()
 while True:

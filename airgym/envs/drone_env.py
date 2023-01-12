@@ -65,7 +65,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return im_final.reshape([84, 84, 1])
 
     def get_destination(self):
-        return airsim.Vector3r(12.326184272766113, 119.89775848388672, -3.789776563644409)
+        #last coors for city: (12.326184272766113, 119.89775848388672, -3.789776563644409)
+        return airsim.Vector3r(-359.7535095214844, -402.3492126464844, 15.1305513381958)
 
     def get_dist(self, position):
         return self.get_destination() - position
@@ -94,11 +95,12 @@ class  AirSimDroneEnvV1(AirSimEnv):
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
-            quad_vel.x_val + quad_offset[0],
-            quad_vel.y_val + quad_offset[1],
-            quad_vel.z_val + quad_offset[2],
+            quad_vel.x_val + quad_offset[0] * 10,
+            quad_vel.y_val + quad_offset[1] * 10,
+            quad_vel.z_val + quad_offset[2] * 10,
             5,
         ).join()
+        #print(self.state["position"]) # debug 
 
     def calc_dist(self, pointA, pointB):
         return math.sqrt(pow(pointA.x_val - pointB.x_val, 2) + pow(pointA.y_val - pointB.y_val, 2) + pow(pointA.z_val - pointB.z_val, 2))
