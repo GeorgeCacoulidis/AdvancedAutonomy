@@ -176,6 +176,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
+        self.lidar_processing()
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -183,12 +184,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
             quad_vel.y_val + quad_offset[1],
             quad_vel.z_val + quad_offset[2],
             5,
-        ).join()
-        
-        if(self.drone.getLidarData().point_cloud):
-            self.state["processed_lidar"] = 1
-        else:
-            self.state["processed_lidar"] = 0
+        ).join()        
 
     def calc_dist(self, pointA, pointB):
         return math.sqrt(pow(pointA.x_val - pointB.x_val, 2) + pow(pointA.y_val - pointB.y_val, 2) + pow(pointA.z_val - pointB.z_val, 2))
