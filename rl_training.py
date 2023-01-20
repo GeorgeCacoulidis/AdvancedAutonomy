@@ -8,6 +8,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
+from scheduling import linear_schedule
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -30,7 +31,7 @@ env = VecTransposeImage(env)
 model = DQN(
     "CnnPolicy",
     env,
-    learning_rate=0.00025,
+    learning_rate=linear_schedule(.1),
     verbose=1,
     batch_size=32,
     train_freq=4,
