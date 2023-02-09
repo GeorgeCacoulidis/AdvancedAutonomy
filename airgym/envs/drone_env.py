@@ -52,7 +52,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.drone.armDisarm(True)
 
         # Set home position and velocity
-        self.starting_position = airsim.Vector3r(-0.55265, -31.9786, -19.0225) # should this be declared in init? 
+        self.starting_position = airsim.Vector3r(0, 0, -19) # should this be declared in init? 
         self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
         self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
@@ -75,6 +75,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
     def get_destination(self):
         #last coors for city: (12.326184272766113, 119.89775848388672, -3.789776563644409)
         return airsim.Vector3r(-359.7535095214844, -402.3492126464844, 15.1305513381958)
+
 
     def get_dist(self, position):
         return self.get_destination() - position
@@ -186,6 +187,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
             quad_vel.z_val + quad_offset[2] * 10,
             5,
         ).join()        
+        self.drone.moveByVelocityAsync(0, 0, 0, .3).join()
 
     def calc_dist(self, pointA, pointB):
         return math.sqrt(pow(pointA.x_val - pointB.x_val, 2) + pow(pointA.y_val - pointB.y_val, 2) + pow(pointA.z_val - pointB.z_val, 2))

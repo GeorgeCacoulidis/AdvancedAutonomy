@@ -10,6 +10,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
 
+
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
     [
@@ -51,9 +52,9 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./best_models/{str(time.time())}",
-    log_path=f"./eval_logs/{str(time.time())}",
-    eval_freq=10000,
+    best_model_save_path=f"./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/{str(time.time())}",
+    log_path=f"./UE5_PATH_TRAVERSAL_LIDAR_T1_eval_logs/{str(time.time())}",
+    eval_freq=5000,
 )
 callbacks.append(eval_callback)
 
@@ -66,10 +67,12 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e5,
-    tb_log_name="dqn_airsim_drone_run_landscape_across_lake_baseline" + str(time.time()),
+    total_timesteps=1e5,
+    tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy_landscape_across_lake_baseline")
+
+model.save("UE5_PATH_TRAVERSAL_LIDAR_T1000_POLICY_WEIGHTS")
+
