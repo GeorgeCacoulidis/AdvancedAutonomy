@@ -7,7 +7,7 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -16,7 +16,7 @@ env = DummyVecEnv(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
-                step_length=0.25,
+                step_length=1,
                 image_shape=(84, 84, 1),
             )
         )
@@ -30,18 +30,18 @@ env = VecTransposeImage(env)
 model = DQN(
     "CnnPolicy",
     env,
-    learning_rate=0.0001,
+    learning_rate=0.00025,
     verbose=1,
     batch_size=32,
-    train_freq=1,
-    target_update_interval=1,
-    learning_starts=100,
-    buffer_size=500000,
-    max_grad_norm=10, 
+    train_freq=4,
+    target_update_interval=10000,
+    learning_starts=10000,
+    buffer_size=1000000,
+    max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
     device="cuda",
-    tensorboard_log="./logs_actual/",
+    tensorboard_log="./tb_logs/"
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -49,22 +49,26 @@ callbacks = []
 eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
-    n_eval_episodes=100,
-    best_model_save_path=".",
-    log_path=".",
-    eval_freq=500,
+    n_eval_episodes=5,
+    best_model_save_path=f"./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/{str(time.time())}",
+    log_path=f"./UE5_PATH_TRAVERSAL_LIDAR_T1_eval_logs/{str(time.time())}",
+    eval_freq=5000,
 )
 callbacks.append(eval_callback)
+
+# Create a progress bar callback to estimate time left
+progress_bar_callback = ProgressBarCallback()
+callbacks.append(progress_bar_callback)
 
 kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=2e3,
-    tb_log_name="dqn_airsim_drone_run_1" + str(time.time()),
+    total_timesteps=1e5,
+    tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy")
+model.save("UE5_PATH_TRAVERSAL_LIDAR_T1000_POLICY_WEIGHTS")
