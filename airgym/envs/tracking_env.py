@@ -10,6 +10,7 @@ from gym import spaces
 from airgym.envs.airsim_env import AirSimEnv
 import time
 import torch
+import traceback
 
 #Bounding Box centering limit
 BOX_LIM_X_MIN = 156
@@ -51,13 +52,12 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.armDisarm(True)
 
         # Set home position and velocity
-        self.starting_position = airsim.Vector3r(-0.55265, -31.9786, -19.0225) # should this be declared in init? 
+        self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
         self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
         self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
-        self.origin_dist_to_target = self.calc_dist(self.origin, self.get_destination())
 
     def transform_obs(self, responses):
         img1d = np.array(responses[0].image_data_float, dtype=np.float)
@@ -98,10 +98,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
-            quad_vel.x_val + quad_offset[0] * 10,
-            quad_vel.y_val + quad_offset[1] * 10,
-            quad_vel.z_val + quad_offset[2] * 10,
-            5,
+            quad_vel.x_val + quad_offset[0],
+            quad_vel.y_val + quad_offset[1],
+            quad_vel.z_val + quad_offset[2],
+            1,
         ).join()
         #print(self.state["position"]) # debug 
 
@@ -135,15 +135,16 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def _compute_reward(self):
         reward = 0
         done = 0
-
         if(self.state["inSight"] == False):
+            self.reset()
+            print("Testing: " + str(done))
             return -100, 1
 
         if(self.isCentered()):
             reward = reward + 20
         else:
-            reward = reward - self.calcOffset()
-        
+            reward = reward - self.calcOffset()   
+                    
         return reward, done
 
     def step(self, action):
@@ -158,14 +159,14 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self._setup_flight()
         return self._get_obs()
 
-    def load_model():
+    def load_model(self):
         model = torch.hub.load('ultralytics/yolov5', 'custom', 'best')    
         return model
 
     def raw_image_snapshot(self):
         camera_name = "0"
         image_type = airsim.ImageType.Scene
-        raw_image = self.simGetImage(camera_name, image_type)
+        raw_image = self.drone.simGetImage(camera_name, image_type)
 
         return raw_image
 
@@ -184,7 +185,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
                 x_min = float(box[0])
                 y_min = float(box[1])
                 x_max = float(box[2])
-                y_max = float(box[3])
+                y_max = float(box[3])        
 
         return ambulance_found, x_min, x_max, y_min, y_max
 

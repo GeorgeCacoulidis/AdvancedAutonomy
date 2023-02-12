@@ -3,12 +3,13 @@ import gym
 import airgym
 import time
 
+#from stable_baselines3 import DQN
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
-
+import torch as th
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
     [
@@ -25,7 +26,6 @@ env = DummyVecEnv(
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
 env = VecTransposeImage(env)
-
 # Initialize RL algorithm type and parameters
 model = DQN(
     "CnnPolicy",
@@ -34,9 +34,10 @@ model = DQN(
     verbose=1,
     batch_size=32,
     train_freq=4,
-    target_update_interval=10000,
+    target_update_interval=1,
     learning_starts=10000,
     buffer_size=1000000,
+    gradient_steps=10000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
@@ -65,7 +66,7 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e5,
+    total_timesteps=5e6,
     tb_log_name="dqn_airsim_drone_run_landscape_across_lake_baseline" + str(time.time()),
     **kwargs
 )
