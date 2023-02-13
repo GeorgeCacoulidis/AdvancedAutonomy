@@ -52,9 +52,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.armDisarm(True)
 
         # Set home position and velocity
-        self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
-        self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
-        self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
+        #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
+        #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
+        #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
@@ -95,6 +95,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
+        print("wirweioprhjuwoir")
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
