@@ -1,3 +1,5 @@
+import logging
+import traceback
 import setup_path
 import gym
 import airgym
@@ -66,11 +68,18 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-model.learn(
-    total_timesteps=1e5,
-    tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
-    **kwargs
-)
+learning = 0
+while (learning == 0):
+    learning = 1
+    try:
+        model.learn(
+            total_timesteps=1e5,
+            tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
+            **kwargs
+        )
+    except Exception as e:
+        logging.error(traceback.format_exc(e))
+        learning = 0
 
 # Save policy weights
 
