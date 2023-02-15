@@ -19,18 +19,18 @@ env = DummyVecEnv(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
                 step_length=1,
-                image_shape=(84, 84, 1),
+                image_shape=(19,),
             )
         )
     ]
 )
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
-env = VecTransposeImage(env)
+#env = VecTransposeImage(env)
 
 # Initialize RL algorithm type and parameters
 model = DQN(
-    "CnnPolicy",
+    "MlpPolicy",
     env,
     learning_rate=linear_schedule(0.1),
     verbose=1,
@@ -52,8 +52,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQN_VarLR_best_model/{str(time.time())}",
-    log_path=f"./DQN_VarLR_eval_logs/{str(time.time())}",
+    best_model_save_path=f"./DQNV3_best_model",
+    log_path=f"./DQNV3_eval_logs",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -68,11 +68,11 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./DQN_VarLR_" + str(time.time()),
+    tb_log_name="./DQNV3",
     **kwargs
 )
 
 # Save policy weights
 
-model.save("DQN_VarLR")
+model.save("DQNV3")
 

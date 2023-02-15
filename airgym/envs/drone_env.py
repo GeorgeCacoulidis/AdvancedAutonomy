@@ -47,6 +47,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.drone.reset()
 
     def _setup_flight(self):
+        self.negative_reward = 0
+        self.threshold_start_time = time.time()
         self.drone.reset()
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
@@ -55,21 +57,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.origin_dist_to_target = self.calc_dist(self.origin, self.get_destination())
 
-    def transform_obs(self, responses):
-        img1d = np.array(responses[0].image_data_float, dtype=np.float)
-        img1d = 255 / np.maximum(np.ones(img1d.size), img1d)
-        img2d = np.reshape(img1d, (responses[0].height, responses[0].width))
-
-        from PIL import Image
-
-        image = Image.fromarray(img2d)
-        im_final = np.array(image.resize((84, 84)).convert("L"))
-
-        return im_final.reshape([84, 84, 1])
-
     def get_destination(self):
-        # last coors for UE4 City: (12.326184272766113, 119.89775848388672, -3.789776563644409)
-        # last coors for UE4 Mountain: (-359.7535095214844, -402.3492126464844, 15.1305513381958)
+        #last coors for city: (12.326184272766113, 119.89775848388672, -3.789776563644409)
+        # last coors for mountain: (-359.7535095214844, -402.3492126464844, 15.1305513381958)
         # relatively close coors for UE5 City 
         return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
