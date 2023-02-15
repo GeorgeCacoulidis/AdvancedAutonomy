@@ -68,8 +68,10 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return im_final.reshape([84, 84, 1])
 
     def get_destination(self):
-        #last coors for city: (12.326184272766113, 119.89775848388672, -3.789776563644409)
-        return airsim.Vector3r(-359.7535095214844, -402.3492126464844, 15.1305513381958)
+        # last coors for UE4 City: (12.326184272766113, 119.89775848388672, -3.789776563644409)
+        # last coors for UE4 Mountain: (-359.7535095214844, -402.3492126464844, 15.1305513381958)
+        # relatively close coors for UE5 City 
+        return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
 
     def get_dist(self, position):

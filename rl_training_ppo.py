@@ -8,6 +8,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
+from scheduling import linear_schedule
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -15,7 +16,7 @@ env = DummyVecEnv(
         lambda: Monitor(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
-                ip_address="127.0.0.1",
+                ip_address="127.0.0.2",
                 step_length=0.25,
                 image_shape=(84, 84, 1),
             )
@@ -30,7 +31,7 @@ env = VecTransposeImage(env)
 model = PPO(
     "CnnPolicy",
     env,
-    learning_rate=0.0003,
+    learning_rate=linear_schedule(0.1),
     n_steps=2048,
     verbose=1,
     batch_size=64,
@@ -46,7 +47,7 @@ model = PPO(
     sde_sample_freq=-1,
     target_kl=None,
     device="cuda",
-    tensorboard_log="./logs_actual/",
+    tensorboard_log="./tb_logs/",
     _init_setup_model=True
 )
 
@@ -56,9 +57,9 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path="./best_model/",
-    log_path="./eval_logs/",
-    eval_freq=500,
+    best_model_save_path="./PPO_VarLR_best_model/",
+    log_path="./PPO_VarLR_eval_logs/",
+    eval_freq=5000,
 )
 callbacks.append(eval_callback)
 
@@ -79,10 +80,10 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=2e3,
-    tb_log_name="ppo_airsim_drone_run_landscape_across_lake" + str(time.time()),
+    total_timesteps=1e5,
+    tb_log_name="./PPO_VarLR_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("ppo_airsim_drone_policy_landscape_across_lake")
+model.save("PPO_VarLR")
