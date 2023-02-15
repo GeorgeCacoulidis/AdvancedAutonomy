@@ -5,7 +5,7 @@ import time
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
+from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage, VecExtractDictObs
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
@@ -19,18 +19,18 @@ env = DummyVecEnv(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
                 step_length=1,
-                image_shape=(84, 84, 1),
+                image_shape=(19,),
             )
         )
     ]
 )
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
-env = VecTransposeImage(env)
+#env = VecTransposeImage(env)
 
 # Initialize RL algorithm type and parameters
 model = DQN(
-    "CnnPolicy",
+    "MlpPolicy",
     env,
     learning_rate=linear_schedule(.1),
     verbose=1,

@@ -51,11 +51,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
 
-        # Set home position and velocity
-        self.starting_position = airsim.Vector3r(0, 0, -19) # should this be declared in init? 
-        self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
-        self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
-
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.origin_dist_to_target = self.calc_dist(self.origin, self.get_destination())
@@ -157,8 +152,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
-        responses = self.drone.simGetImages([self.image_request])
-        image = self.transform_obs(responses)
         self.drone_state = self.drone.getMultirotorState()
 
 
@@ -172,13 +165,14 @@ class  AirSimDroneEnvV1(AirSimEnv):
         collision = self.drone.simGetCollisionInfo().has_collided
         self.state["collision"] = collision
 
-        #self.state["processed_lidar"] = self.process_lidar()
+        self.lidar_processing()
 
-        return image
+        return [*self.state["prev_position"], *self.state["position"], *self.state["velocity"], *self.state["prev_dist"], *self.state["curr_dist"], *self.state["processed_lidar"]]
+
+        #self.state["processed_lidar"] = self.process_lidar()
 
     # the actual movement of the drone
     def _do_action(self, action):
-        self.lidar_processing()
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -214,7 +208,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         curr_dist_to_target = self.calc_dist(target_l, curr_l)
 
         # Calculate range between origin and target
-        origin_dist_to_target = self.calc_dist(target_l, self.starting_position)
+        origin_dist_to_target = self.calc_dist(target_l, self.origin)
 
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
