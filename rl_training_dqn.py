@@ -52,8 +52,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQNV3_best_model",
-    log_path=f"./DQNV3_eval_logs",
+    best_model_save_path=f"./DQN_Fixed_best_model/{str(time.time())}",
+    log_path=f"./DQN_Fixed_eval_logs/{str(time.time())}",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -68,11 +68,11 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./DQNV3",
+    tb_log_name=f"./DQN_Fixed/{str(time.time())}",
     **kwargs
 )
 
 # Save policy weights
 
-model.save("DQNV3")
+model.save(f"./DQN_Fixed/{str(time.time())}")
 

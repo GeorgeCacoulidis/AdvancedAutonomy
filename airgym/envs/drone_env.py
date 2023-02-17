@@ -53,6 +53,11 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
 
+        # Set home position
+        #self.starting_position = airsim.Vector3r(0, 0, -19)
+        #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
+        #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
+
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.origin_dist_to_target = self.calc_dist(self.origin, self.get_destination())
@@ -209,9 +214,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
             return reward, done
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
-        if curr_dist_to_target == 0:
+        if curr_dist_to_target <= 10:
             done = 1
-            reward += 100
+            reward += 500
 
         # if the drone does nothing and is in the same position give them minus 10
         # to show being stagnant is not the best move
@@ -239,16 +244,18 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # else the drone move closer to the target then its previous distance which is a +
         # previous dist is greater then curr distance so it'll pass a positive value
         else: 
-            reward += (prev_dist_to_target - curr_dist_to_target)
+            reward += (prev_dist_to_target - curr_dist_to_target) * 10
 
         #Checks if the stopwatch has reached 1 minute. If it has, it checks if the negative reward
         #threshold has been reach, which would trigger the start of a new episode
-        if((int) (time.time() - self.threshold_start_time) >= 60):
-            if(self.negative_reward >= 100):
+        if((int) (time.time() - self.threshold_start_time) >= 5):
+            print("self.negative_reward" + str(self.negative_reward))
+            if(self.negative_reward <= -5):
+                reward -= 20
                 done = 1
-            else:
-                self.negative_reward = 0
-                self.threshold_start_time = time.time()
+        else:
+            self.negative_reward = 0
+            self.threshold_start_time = time.time()
 
         # do we need? are we subtracting reward doubly for no reason?
         #else:
