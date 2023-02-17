@@ -1,11 +1,11 @@
 import torch
 import pandas
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v2')
 
 img = 'tests/sktSEhIa8q.jpg'
 
-results = model(img, size = 1600)
+results = model(img, size = 1612)
 
 
 ambulance_found = False

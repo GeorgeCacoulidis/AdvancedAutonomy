@@ -215,7 +215,7 @@ class OrbitNavigator:
         return 1
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'custom', 'best')
+    model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v2')
     
     return model
 
@@ -236,7 +236,7 @@ def connect_to_client():
 def detection(raw_image, model):
     png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
-    result = model(png)
+    result = model(png, size = 1216)
     ambulance_found = False
     x_min = -1
     x_max = -1
