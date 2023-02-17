@@ -13,13 +13,13 @@ client.confirmConnection()
 # set camera name and image type
 camera_name = "0"
 image_type = airsim.ImageType.Scene
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'best')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v2')
 
 
 def detection(raw_image, model):
     png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
-    result = model(png)
+    result = model(png, size = 1216)
     ambulance_found = False
     xA = -1
     xB = -1
