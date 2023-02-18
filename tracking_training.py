@@ -18,17 +18,17 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=1,
-                image_shape=(84, 84, 1),
+                image_shape=(5,),
             )
         )
     ]
 )
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
-env = VecTransposeImage(env)
-# Initialize RL algorithm type and parameters
+#lenv = VecTransposeImage(env)
+# Initialize RL algorithm type and parametersll
 model = DQN(
-    "CnnPolicy",
+    "MlpPolicy",
     env,
     learning_rate=0.00025,
     verbose=1,

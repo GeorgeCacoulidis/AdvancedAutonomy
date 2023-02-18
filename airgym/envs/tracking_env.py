@@ -12,11 +12,15 @@ import time
 import torch
 import traceback
 
+from pynput.keyboard import Key, Controller
+
+
 #Bounding Box centering limit
 BOX_LIM_X_MIN = 156
 BOX_LIM_X_MAX = 356
 BOX_LIM_Y_MIN = 156
 BOX_LIM_Y_MAX = 356
+keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -32,7 +36,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "xMax": 0,
             "yMin": 0,
             "yMax": 0,
-            "inSight": True,
+            "inSight": 1,
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
@@ -47,7 +51,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.reset()
 
     def _setup_flight(self):
-        self.drone.reset()
+        #self.drone.reset()0
+        keyboard.press("l")
+        keyboard.release("l")
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
 
@@ -59,34 +65,21 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
 
-    def transform_obs(self, responses):
-        img1d = np.array(responses[0].image_data_float, dtype=np.float)
-        img1d = 255 / np.maximum(np.ones(img1d.size), img1d)
-        img2d = np.reshape(img1d, (responses[0].height, responses[0].width))
-
-        from PIL import Image
-
-        image = Image.fromarray(img2d)
-        im_final = np.array(image.resize((84, 84)).convert("L"))
-
-        return im_final.reshape([84, 84, 1])
-
-
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
-        responses = self.drone.simGetImages([self.image_request])
-        image = self.transform_obs(responses)
+        #responses = self.drone.simGetImages([self.image_request])
+        #image = self.transform_obs(responses)
         self.drone_state = self.drone.getMultirotorState()
 
         self.getModelResults()
 
-        return image
+        return [self.state["xMin"], self.state["xMax"], self.state["yMin"], self.state["yMax"], self.state["inSight"]]
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
         ambulance_found, x_min, x_max, y_min, y_max = self.detection(image)
 
-        self.state["inSight"] = ambulance_found
+        self.state["inSight"] = int(ambulance_found)
         self.state["xMin"] = x_min
         self.state["xMax"] = x_max
         self.state["yMin"] = y_min
@@ -136,7 +129,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def _compute_reward(self):
         reward = 0
         done = 0
-        if(self.state["inSight"] == False):
+        if(self.state["inSight"] == 0):
             self.reset()
             print("Testing: " + str(done))
             return -100, 1
