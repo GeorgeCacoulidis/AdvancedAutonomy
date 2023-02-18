@@ -57,8 +57,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path="./PPO_Fixed_best_model/",
-    log_path="./PPO_Fixed_eval_logs/",
+    best_model_save_path="./PPO_ALPHA3_best_model",
+    log_path="./PPO_ALPHA3_eval_logs/",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -81,9 +81,9 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./PPO_Fixed_" + str(time.time()),
+    tb_log_name="./PPO_ALPHA3_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("PPO_Fixed")
+model.save("PPO_ALPHA3")

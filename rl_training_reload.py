@@ -10,6 +10,8 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
 
+# Reload the previous model: "best_model.zip path", "tb_logs path"
+model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip", tensorboard_log="./tb_logs/DQN_ALPHA2_1676611422.436817_1")
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -18,33 +20,15 @@ env = DummyVecEnv(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
-                step_length=1,
+                step_length=0.25,
                 image_shape=(19,),
             )
         )
     ]
 )
 
-# Wrap env as VecTransposeImage to allow SB to handle frame observations
-#env = VecTransposeImage(env)
-
-# Initialize RL algorithm type and parameters
-model = DQN(
-    "MlpPolicy",
-    env,
-    learning_rate=linear_schedule(0.1),
-    verbose=1,
-    batch_size=32,
-    train_freq=4,
-    target_update_interval=10000,
-    learning_starts=10000,
-    buffer_size=1000000,
-    max_grad_norm=10,
-    exploration_fraction=0.1,
-    exploration_final_eps=0.01,
-    device="cuda",
-    tensorboard_log="./tb_logs/"
-)
+# Set the env 
+model.set_env(env)
 
 # Create an evaluation callback with the same env, called every 10000 iterations
 callbacks = []
@@ -52,8 +36,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQN_ALPHA_reloaded_best_model",
-    log_path=f"./DQN_ALPHA_reloaded_eval_logs",
+    best_model_save_path=f"./DQN_ALPHA2_best_model",
+    log_path=f"./DQN_ALPHA2_eval_logs",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -68,11 +52,11 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./DQN_ALPHA_reloaded_" + str(time.time()),
+    reset_num_timesteps=False,
+    #tb_log_name="./DQN_ALPHA2_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-
-model.save("DQN_ALPHA_reloaded")
+model.save("DQN_ALPHA2")
 

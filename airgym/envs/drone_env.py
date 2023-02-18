@@ -248,14 +248,18 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
         #Checks if the stopwatch has reached 1 minute. If it has, it checks if the negative reward
         #threshold has been reach, which would trigger the start of a new episode
-        if((int) (time.time() - self.threshold_start_time) >= 5):
-            print("self.negative_reward" + str(self.negative_reward))
-            if(self.negative_reward <= -5):
+        print((time.time() - self.threshold_start_time))
+        print("self.negative_reward" + str(self.negative_reward))
+        #print("self.negative_reward" + str(self.negative_reward))
+        if((time.time() - self.threshold_start_time) >= 5):
+            print("IN THE IF: self.negative_reward" + str(self.negative_reward))
+            if(self.negative_reward <= -100):
                 reward -= 20
+                print(" LESS REWARD FOR U")
                 done = 1
-        else:
-            self.negative_reward = 0
-            self.threshold_start_time = time.time()
+        #else:
+            #self.negative_reward = 0
+            #self.threshold_start_time = time.time()
 
         # do we need? are we subtracting reward doubly for no reason?
         #else:
