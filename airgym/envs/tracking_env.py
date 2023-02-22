@@ -31,6 +31,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
 
+        print("loaded model ok")
+
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -43,9 +45,13 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.action_space = spaces.Discrete(7)
         self._setup_flight()
 
+        print("after setup_flight")
+
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
         )
+
+        print("completed image_request")
 
     def __del__(self):
         self.drone.reset()
@@ -88,7 +94,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
-        print("wirweioprhjuwoir")
+        print("It's called debugging your code --GK")
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -111,7 +117,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         else:
             return True
     
-    def calcOffeset(self):
+    def calcOffset(self):
         dist = 0
         if(self.state["xMin"] < BOX_LIM_X_MIN):
             dist = dist + BOX_LIM_X_MIN - self.state["xMin"]
@@ -142,10 +148,15 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return reward, done
 
     def step(self, action):
+        print("entered step")
         self.getModelResults()
+        print("got model results")
         self._do_action(action)
+        print("completed do_action")
         obs = self._get_obs()
+        print("got the obs")
         reward, done = self._compute_reward()
+        print("got reward and we're done")
 
         return obs, reward, done, self.state
 
@@ -154,7 +165,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'best')    
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_test_environment')
+        print(model)
         return model
 
     def raw_image_snapshot(self):
@@ -167,7 +179,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def detection(self, raw_image):
         png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
-        result = self.detectionModel(png)
+        result = self.detectionModel(png, size = 1216)
         ambulance_found = False
         x_min = -1
         x_max = -1

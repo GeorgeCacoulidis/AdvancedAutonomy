@@ -67,9 +67,9 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=5e6,
-    tb_log_name="dqn_airsim_drone_run_landscape_across_lake_baseline" + str(time.time()),
+    tb_log_name="tracking_training" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy_landscape_across_lake_baseline")
+model.save("tracking_training")
