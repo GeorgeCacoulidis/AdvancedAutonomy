@@ -1,0 +1,35 @@
+def transform_obs(self, responses):
+    img1d = np.array(responses[0].image_data_float, dtype=np.float)
+    img1d = 255 / np.maximum(np.ones(img1d.size), img1d)
+    img2d = np.reshape(img1d, (responses[0].height, responses[0].width))
+
+    from PIL import Image
+
+    image = Image.fromarray(img2d)
+    im_final = np.array(image.resize((84, 84)).convert("L"))
+
+    return im_final.reshape([84, 84, 1])
+
+
+
+
+# pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
+def _get_obs(self):
+    responses = self.drone.simGetImages([self.image_request])
+    #image = self.transform_obs(responses)
+    self.drone_state = self.drone.getMultirotorState()
+
+
+    self.state["prev_position"] = self.state["position"]
+    self.state["position"] = self.drone_state.kinematics_estimated.position
+    self.state["velocity"] = self.drone_state.kinematics_estimated.linear_velocity
+
+    self.state["prev_dist"] = self.state["curr_dist"]
+    self.state["curr_dist"] = self.get_dist(self.state["position"])
+
+    collision = self.drone.simGetCollisionInfo().has_collided
+    self.state["collision"] = collision
+
+    #self.state["processed_lidar"] = self.process_lidar()
+
+    return responses

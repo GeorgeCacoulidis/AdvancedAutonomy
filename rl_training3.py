@@ -30,18 +30,18 @@ env = VecTransposeImage(env)
 model = DQN(
     "CnnPolicy",
     env,
-    learning_rate=0.01,
+    learning_rate=3,
     verbose=1,
     batch_size=32,
-    train_freq=4,
-    target_update_interval=10000,
-    learning_starts=10000,
+    train_freq=1,
+    target_update_interval=1,
+    learning_starts=100,
     buffer_size=500000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
     device="cuda",
-    tensorboard_log="./tb_logs/",
+    tensorboard_log="./logs_actual/",
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -49,10 +49,10 @@ callbacks = []
 eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
-    n_eval_episodes=5,
+    n_eval_episodes=100,
     best_model_save_path=".",
     log_path=".",
-    eval_freq=10000,
+    eval_freq=500,
 )
 callbacks.append(eval_callback)
 
@@ -61,10 +61,10 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e5,
-    tb_log_name="dqn_airsim_drone_run_" + str(time.time()),
+    total_timesteps=5e3,
+    tb_log_name="dqn_airsim_drone_run_5000_lr3" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("dqn_airsim_drone_policy")
+model.save("dqn_airsim_drone_policy_5000_lr3")
