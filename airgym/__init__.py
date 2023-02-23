@@ -7,3 +7,7 @@ register(
 register(
     id="airsim-drone-sample-v1", entry_point="airgym.envs:AirSimDroneEnvV1",
 )
+
+register(
+    id="airsim-car-tracking-v1", entry_point="airgym.envs:DroneCarTrackingEnv",
+)

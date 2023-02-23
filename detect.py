@@ -6,7 +6,6 @@ import pprint
 import torch
 import pandas
 
-
 # connect to the AirSim simulator
 client = airsim.VehicleClient()
 client.confirmConnection()
@@ -21,7 +20,7 @@ def detection(raw_image, model):
     png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
     result = model(png, size = 1216)
-    ambulance_found = False
+    police_car_found = False
     xA = -1
     xB = -1
     yA = -1
@@ -35,14 +34,15 @@ def detection(raw_image, model):
             yA = int(box[1])      
             cv2.rectangle(png, (xA, yA), (xB, yB), (255,0, 0), 2)
             cv2.putText(png, str(box[4].item()), (xA, yA-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0))
-            ambulance_found = True
+            police_car_found = True
 
     
     cv2.imshow("AirSim", png)
     cv2.waitKey(5)
 
-    return ambulance_found, xA, xB, yA, yB
+    return police_car_found, xA, xB, yA, yB
 while True:
     raw_image = client.simGetImage(camera_name, image_type)
-    ambulance_found, xA, xB, yA, yB = detection(raw_image, model)
-    print(ambulance_found, xA, xB, yA, yB)
+    police_car_found, xA, xB, yA, yB = detection(raw_image, model)
+    print(police_car_found, xA, xB, yA, yB)
+    
