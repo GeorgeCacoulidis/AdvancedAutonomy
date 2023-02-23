@@ -6,6 +6,7 @@ import pprint
 import torch
 import pandas
 
+
 # connect to the AirSim simulator
 client = airsim.VehicleClient()
 client.confirmConnection()
@@ -45,4 +46,3 @@ while True:
     raw_image = client.simGetImage(camera_name, image_type)
     ambulance_found, xA, xB, yA, yB = detection(raw_image, model)
     print(ambulance_found, xA, xB, yA, yB)
-    

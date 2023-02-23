@@ -16,7 +16,7 @@ env = DummyVecEnv(
         lambda: Monitor(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
-                ip_address="172.27.176.1",
+                ip_address="127.0.0.1",
                 step_length=0.25,
                 image_shape=(84, 84, 1),
             )
@@ -63,7 +63,7 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e4,
-    tb_log_name="dqn_airsim_drone_run_script1" + str(time.time()),
+    tb_log_name="dqn_airsim_drone_run_short" + str(time.time()),
     **kwargs
 )
 
