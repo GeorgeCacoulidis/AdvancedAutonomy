@@ -47,34 +47,24 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.drone.reset()
 
     def _setup_flight(self):
+        self.negative_reward = 0
+        self.threshold_start_time = time.time()
         self.drone.reset()
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
 
-        # Set home position and velocity
-        self.starting_position = airsim.Vector3r(0, 0, -19) # should this be declared in init? 
-        self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
-        self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
+        # Set home position
+        #self.starting_position = airsim.Vector3r(0, 0, -19)
+        #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
+        #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.origin_dist_to_target = self.calc_dist(self.origin, self.get_destination())
 
-    def transform_obs(self, responses):
-        img1d = np.array(responses[0].image_data_float, dtype=np.float)
-        img1d = 255 / np.maximum(np.ones(img1d.size), img1d)
-        img2d = np.reshape(img1d, (responses[0].height, responses[0].width))
-
-        from PIL import Image
-
-        image = Image.fromarray(img2d)
-        im_final = np.array(image.resize((84, 84)).convert("L"))
-
-        return im_final.reshape([84, 84, 1])
-
     def get_destination(self):
-        # last coors for UE4 City: (12.326184272766113, 119.89775848388672, -3.789776563644409)
-        # last coors for UE4 Mountain: (-359.7535095214844, -402.3492126464844, 15.1305513381958)
+        #last coors for city: (12.326184272766113, 119.89775848388672, -3.789776563644409)
+        # last coors for mountain: (-359.7535095214844, -402.3492126464844, 15.1305513381958)
         # relatively close coors for UE5 City 
         return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
@@ -159,8 +149,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
-        responses = self.drone.simGetImages([self.image_request])
-        image = self.transform_obs(responses)
         self.drone_state = self.drone.getMultirotorState()
 
 
@@ -174,13 +162,14 @@ class  AirSimDroneEnvV1(AirSimEnv):
         collision = self.drone.simGetCollisionInfo().has_collided
         self.state["collision"] = collision
 
-        #self.state["processed_lidar"] = self.process_lidar()
+        self.lidar_processing()
 
-        return image
+        return [*self.state["prev_position"], *self.state["position"], *self.state["velocity"], *self.state["prev_dist"], *self.state["curr_dist"], *self.state["processed_lidar"]]
+
+        #self.state["processed_lidar"] = self.process_lidar()
 
     # the actual movement of the drone
     def _do_action(self, action):
-        self.lidar_processing()
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -216,7 +205,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         curr_dist_to_target = self.calc_dist(target_l, curr_l)
 
         # Calculate range between origin and target
-        origin_dist_to_target = self.calc_dist(target_l, self.starting_position)
+        origin_dist_to_target = self.calc_dist(target_l, self.origin)
 
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
@@ -225,9 +214,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
             return reward, done
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
-        if curr_dist_to_target == 0:
+        if curr_dist_to_target <= 10:
             done = 1
-            reward += 100
+            reward += 500
 
         # if the drone does nothing and is in the same position give them minus 10
         # to show being stagnant is not the best move
@@ -255,16 +244,22 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # else the drone move closer to the target then its previous distance which is a +
         # previous dist is greater then curr distance so it'll pass a positive value
         else: 
-            reward += (prev_dist_to_target - curr_dist_to_target)
+            reward += (prev_dist_to_target - curr_dist_to_target) * 10
 
         #Checks if the stopwatch has reached 1 minute. If it has, it checks if the negative reward
         #threshold has been reach, which would trigger the start of a new episode
-        if((int) (time.time() - self.threshold_start_time) >= 60):
-            if(self.negative_reward >= 100):
+        print((time.time() - self.threshold_start_time))
+        print("self.negative_reward" + str(self.negative_reward))
+        #print("self.negative_reward" + str(self.negative_reward))
+        if((time.time() - self.threshold_start_time) >= 5):
+            print("IN THE IF: self.negative_reward" + str(self.negative_reward))
+            if(self.negative_reward <= -100):
+                reward -= 20
+                print(" LESS REWARD FOR U")
                 done = 1
-            else:
-                self.negative_reward = 0
-                self.threshold_start_time = time.time()
+        #else:
+            #self.negative_reward = 0
+            #self.threshold_start_time = time.time()
 
         # do we need? are we subtracting reward doubly for no reason?
         #else:

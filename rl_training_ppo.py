@@ -18,18 +18,18 @@ env = DummyVecEnv(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.2",
                 step_length=0.25,
-                image_shape=(84, 84, 1),
+                image_shape=(19,),
             )
         )
     ]
 )
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
-env = VecTransposeImage(env)
+# env = VecTransposeImage(env)
 
 # Initialize RL algorithm type and parameters
 model = PPO(
-    "CnnPolicy",
+    "MlpPolicy",
     env,
     learning_rate=linear_schedule(0.1),
     n_steps=2048,
@@ -57,8 +57,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path="./PPO_VarLR_best_model/",
-    log_path="./PPO_VarLR_eval_logs/",
+    best_model_save_path="./PPO_ALPHA3_best_model",
+    log_path="./PPO_ALPHA3_eval_logs/",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -81,9 +81,9 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./PPO_VarLR_" + str(time.time()),
+    tb_log_name="./PPO_ALPHA3_" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
-model.save("PPO_VarLR")
+model.save("PPO_ALPHA3")
