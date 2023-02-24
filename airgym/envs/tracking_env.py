@@ -31,8 +31,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
 
-        print("loaded model ok")
-
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -45,13 +43,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.action_space = spaces.Discrete(7)
         self._setup_flight()
 
-        print("after setup_flight")
-
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
         )
-
-        print("completed image_request")
 
     def __del__(self):
         self.drone.reset()
@@ -94,7 +88,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
-        print("It's called debugging your code --GK")
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -148,15 +141,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return reward, done
 
     def step(self, action):
-        print("entered step")
         self.getModelResults()
-        print("got model results")
         self._do_action(action)
-        print("completed do_action")
         obs = self._get_obs()
-        print("got the obs")
         reward, done = self._compute_reward()
-        print("got reward and we're done")
 
         return obs, reward, done, self.state
 
