@@ -1,11 +1,13 @@
+import setup_path
 import gym
-import os
-from stable_baselines3 import PPO
+import airgym
+import time
+
+from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback
-
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -15,16 +17,18 @@ env = DummyVecEnv(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
                 step_length=0.25,
-                image_shape=(84, 84, 1),
+                image_shape=(19,),
             )
         )
     ]
 )
 
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
-env = VecTransposeImage(env)
+#env = VecTransposeImage(env)
 
-model = PPO.load("./checkpoint_logs/ppo_rl_model_1500_steps.zip")
+
+#model = DQN.load("F:\\AdvancedAutonomy\\UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model\\1675152517.535831\\best_model.zip")
+model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
 
 obs = env.reset()
 while True:
