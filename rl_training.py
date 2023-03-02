@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 import setup_path
 import gym
@@ -68,9 +69,11 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-learning = 0
-while (learning == 0):
-    learning = 1
+directory = "./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/"
+folder = ""
+learned = 0
+while (learned == 0):
+    learned = 1
     try:
         model.learn(
             total_timesteps=1e5,
@@ -79,7 +82,13 @@ while (learning == 0):
         )
     except Exception as e:
         logging.error(traceback.format_exc(e))
-        learning = 0
+        learned = 0
+        for filename in os.scandir(directory):
+            if folder == "":
+                folder = filename.name
+            elif filename.name > folder:
+                folder = filename
+        model = DQN.load(directory + folder + "/best_model.zip")
 
 # Save policy weights
 
