@@ -136,6 +136,35 @@ class  DroneCarTrackingEnv(AirSimEnv):
         
         return dist / 5
 
+    def sanityCheck(self, movement):
+        quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor1", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            if(quad_vel.z_val > 0):
+                quad_vel.z_val = 0
+                movement[2] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor2", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            if(quad_vel.x_val > 0):
+                quad_vel.x_val = 0 
+                movement[0] = 0 
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor3", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            if(quad_vel.z_val < 0):
+                quad_vel.z_val = 0
+                movement[2] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor4", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            if(quad_vel.x_val < 0):
+                quad_vel.x_val = 0 
+                movement[0] = 0 
+        self.drone.moveByVelocityAsync(
+            quad_vel.x_val + movement[0],
+            quad_vel.y_val + movement[1],
+            quad_vel.z_val + movement[2],
+            1,
+        ).join()
+        
 
 
     def _compute_reward(self):
