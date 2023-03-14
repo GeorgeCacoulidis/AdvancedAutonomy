@@ -53,8 +53,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def _setup_flight(self):
         #self.drone.reset()0
-        keyboard.press("l")
-        keyboard.release("l")
+
+        # keyboard reset used to be here 
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
 
@@ -65,6 +65,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+        keyboard.press("l")
+        keyboard.release("l")
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
