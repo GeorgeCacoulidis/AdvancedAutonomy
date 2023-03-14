@@ -2,6 +2,9 @@ import setup_path
 import gym
 import airgym
 import time
+import logging
+import os
+import traceback
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
@@ -52,8 +55,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQN_ALPHA_reloaded_best_model",
-    log_path=f"./DQN_ALPHA_reloaded_eval_logs",
+    best_model_save_path=f"./Traversal_DQN_reloaded_best_model",
+    log_path=f"./Traversal_DQN_reloaded_eval_logs",
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -66,11 +69,27 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-model.learn(
-    total_timesteps=1e5,
-    tb_log_name="./DQN_ALPHA_reloaded_" + str(time.time()),
-    **kwargs
-)
+directory = "./Traversal_DQN/"
+folder = ""
+learned = 0
+while (learned == 0):
+    learned = 1
+    try:
+        model.learn(
+            total_timesteps=1e5,
+            tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
+            **kwargs
+        )
+    except Exception as e:
+        logging.error(traceback.format_exc(e))
+        learned = 0
+        for filename in os.scandir(directory):
+            if folder == "":
+                folder = filename.name
+            elif filename.name > folder:
+                folder = filename
+        model = DQN.load(directory + folder + "/best_model.zip")
+        model.set_env(env)
 
 # Save policy weights
 

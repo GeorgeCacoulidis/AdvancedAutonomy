@@ -9,6 +9,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
+from scheduling import linear_schedule
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
     [
@@ -30,7 +31,7 @@ env = DummyVecEnv(
 model = DQN(
     "MlpPolicy",
     env,
-    learning_rate=0.00025,
+    learning_rate=linear_schedule(0.1),
     verbose=1,
     batch_size=32,
     train_freq=4,
@@ -65,11 +66,25 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-model.learn(
-    total_timesteps=1e5,
-    tb_log_name="tracking_training_tb_logs3",
-    **kwargs
-)
-
+directory = "./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/"
+folder = ""
+learned = 0
+while (learned == 0):
+    learned = 1
+    try:
+        model.learn(
+            total_timesteps=1e5,
+            tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
+            **kwargs
+        )
+    except Exception as e:
+        logging.error(traceback.format_exc(e))
+        learned = 0
+        for filename in os.scandir(directory):
+            if folder == "":
+                folder = filename.name
+            elif filename.name > folder:
+                folder = filename
+        model = PPO.load(directory + folder + "/best_model.zip")
 # Save policy weights
 model.save("tracking_training_final_save3")
