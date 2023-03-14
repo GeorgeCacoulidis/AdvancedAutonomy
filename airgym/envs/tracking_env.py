@@ -16,10 +16,10 @@ from pynput.keyboard import Key, Controller
 
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 156
-BOX_LIM_X_MAX = 356
-BOX_LIM_Y_MIN = 156
-BOX_LIM_Y_MAX = 356
+BOX_LIM_X_MIN = 300
+BOX_LIM_X_MAX = 900
+BOX_LIM_Y_MIN = 200
+BOX_LIM_Y_MAX = 500
 keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
@@ -30,8 +30,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.negative_reward = 0
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
-
-        print("loaded model ok")
+        self.boxSize = 0
 
         self.state = {
             "xMin": 0,
@@ -45,13 +44,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.action_space = spaces.Discrete(7)
         self._setup_flight()
 
-        print("after setup_flight")
-
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
         )
-
-        print("completed image_request")
 
     def __del__(self):
         self.drone.reset()
@@ -94,7 +89,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
-        print("It's called debugging your code --GK")
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
@@ -117,6 +111,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         else:
             return True
     
+    def calcBoxSize(self):
+        x = self.state["xMax"] - self.state["xMin"]
+        y = self.state["yMax"] - self.state["yMin"]
+        return x * y
+
     def calcOffset(self):
         dist = 0
         if(self.state["xMin"] < BOX_LIM_X_MIN):
@@ -144,19 +143,19 @@ class  DroneCarTrackingEnv(AirSimEnv):
             reward = reward + 20
         else:
             reward = reward - self.calcOffset()   
+
+        box = self.calcBoxSize()
+        if(box < self.boxSize):
+            reward - 10
+        self.calcBoxSize = box
                     
         return reward, done
 
     def step(self, action):
-        print("entered step")
         self.getModelResults()
-        print("got model results")
         self._do_action(action)
-        print("completed do_action")
         obs = self._get_obs()
-        print("got the obs")
         reward, done = self._compute_reward()
-        print("got reward and we're done")
 
         return obs, reward, done, self.state
 

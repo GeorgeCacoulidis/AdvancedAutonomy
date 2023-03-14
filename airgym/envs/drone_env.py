@@ -11,6 +11,9 @@ import time
 from metric_gui import MetricsGui
 from PyQt5.QtWidgets import QApplication
 import sys
+import pprintfrom metric_gui import MetricsGui
+from PyQt5.QtWidgets import QApplication
+import sys
 import pprint
 
 
@@ -23,12 +26,14 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.threshold_start_time = time.time()
 
 
+
         self.state = {
             "prev_position": np.zeros(3),
             "position": np.zeros(3),
             "collision": False,
             "prev_dist": np.zeros(3),
             "curr_dist": np.zeros(3),
+            "processed_lidar": np.zeros(4),
             "processed_lidar": np.zeros(4),
         }
 
@@ -39,6 +44,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
         )
+        #self.app = QApplication(sys.argv)
+        #sys.exit(self.app.exec_())
+        #self.metricsGUI = MetricsGui()
         #self.app = QApplication(sys.argv)
         #sys.exit(self.app.exec_())
         #self.metricsGUI = MetricsGui()
@@ -71,7 +79,82 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     def get_dist(self, position):
         return self.get_destination() - position
+        
+    def detect_obstacle(self, box):
+        point_count =  0
+        for dist_point in box:
+            if dist_point:
+                point_count = point_count + 1
+        if point_count >= box.size/3:
+            return 1
+        else:
+            return 0
+
+    def parse_lidarData(self, data):
+
+        # reshape array of floats to array of [X,Y,Z]
+        points = np.array(data.point_cloud, dtype=np.dtype('f4'))
+        points = np.reshape(points, (int(points.shape[0]/3), 3))
+       
+        return points    
+    #Input: 2D numpy array of Point Cloud LIDAR from AirSim API with a preset threshold
+    #Funtion: Paritions the LIDAR into boxes then tests each box for threat
+    #Output: numpy array of size 9, each element indicating the presence or absence of a threat in given box
+    def process_lidar(self, lidar):
+        x_step_size = lidar.shape[1]/3
+        y_step_size = lidar.shape[0]/3
+        obstacles = np.zeros(9)
+
+        #Cutting the LIDAR into 9 boxes
+        box00 = lidar[0:x_step_size, 0:y_step_size]
+        box01 = lidar[0:x_step_size, y_step_size:y_step_size*2 + 1]
+        box02 = lidar[0:x_step_size, y_step_size*2 + 1:y_step_size*3 + 1]
+        box10 = lidar[x_step_size:x_step_size*2 + 1, 0:y_step_size]
+        box11 = lidar[x_step_size:x_step_size*2 + 1, y_step_size:y_step_size*2 + 1]
+        box12 = lidar[x_step_size:x_step_size*2 + 1, y_step_size*2 + 1:y_step_size*3 + 1]
+        box20 = lidar[x_step_size*2 + 1:x_step_size*3 + 1, 0:y_step_size]
+        box21 = lidar[x_step_size*2 + 1:x_step_size*3 + 1, y_step_size:y_step_size*2 + 1]
+        box22 = lidar[x_step_size*2 + 1:x_step_size*3 + 1, y_step_size:y_step_size*3 + 1]
+
+        #Check each individual LIDAR box for obstacle
+        obstacles[0] = self.detect_obstacle(box00) 
+        obstacles[1] = self.detect_obstacle(box01) 
+        obstacles[2] = self.detect_obstacle(box02) 
+        
+        obstacles[3] = self.detect_obstacle(box10) 
+        obstacles[4] = self.detect_obstacle(box11) 
+        obstacles[5] = self.detect_obstacle(box12) 
+        
+        obstacles[6] = self.detect_obstacle(box20) 
+        obstacles[7] = self.detect_obstacle(box21) 
+        obstacles[8] = self.detect_obstacle(box22) 
+
+        return obstacles
     
+    def lidar_processing(self):
+        lidar_results = np.zeros(4)
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor1", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[0] = 1
+        else:
+            lidar_results[0] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor2", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[1] = 1
+        else:
+            lidar_results[1] = 0    
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor3", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[2] = 1
+        else:
+            lidar_results[2] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor4", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[3] = 1
+        else:
+            lidar_results[3] = 0
+        self.state["processed_lidar"] = lidar_results
+
     def detect_obstacle(self, box):
         point_count =  0
         for dist_point in box:
@@ -162,6 +245,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
         collision = self.drone.simGetCollisionInfo().has_collided
         self.state["collision"] = collision
 
+        #self.state["processed_lidar"] = self.process_lidar()
+
         self.lidar_processing()
 
         return [*self.state["prev_position"], *self.state["position"], *self.state["velocity"], *self.state["prev_dist"], *self.state["curr_dist"], *self.state["processed_lidar"]]
@@ -170,12 +255,13 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
+        self.lidar_processing()
         quad_offset = self.interpret_action(action)
         quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
         self.drone.moveByVelocityAsync(
-            quad_vel.x_val + quad_offset[0] * 10,
-            quad_vel.y_val + quad_offset[1] * 10,
-            quad_vel.z_val + quad_offset[2] * 10,
+            quad_vel.x_val + quad_offset[0] * 10 * 10,
+            quad_vel.y_val + quad_offset[1] * 10 * 10,
+            quad_vel.z_val + quad_offset[2] * 10 * 10,
             5,
         ).join()        
         self.drone.moveByVelocityAsync(0, 0, 0, .3).join()
@@ -276,6 +362,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         obs = self._get_obs()
         reward, done = self._compute_reward()
 
+        #self.metricsGUI.refresh()
         #self.metricsGUI.refresh()
         return obs, reward, done, self.state
 

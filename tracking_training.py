@@ -51,9 +51,9 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./tracking_training_best_model",
-    log_path=f"./tracking_training_eval_logs",
-    eval_freq=5000,
+    best_model_save_path=f"./tracking_training_best_model3",
+    log_path=f"./tracking_training_eval_logs3",
+    eval_freq=1000,
 )
 callbacks.append(eval_callback)
 
@@ -67,9 +67,9 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="tracking_training_tb_logs",
+    tb_log_name="tracking_training_tb_logs3",
     **kwargs
 )
 
 # Save policy weights
-model.save("tracking_training_final_save")
+model.save("tracking_training_final_save3")
