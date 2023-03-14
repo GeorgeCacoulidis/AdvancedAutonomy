@@ -8,11 +8,6 @@ import gym
 from gym import spaces
 from airgym.envs.airsim_env import AirSimEnv
 import time
-from metric_gui import MetricsGui
-from PyQt5.QtWidgets import QApplication
-import sys
-import pprintfrom metric_gui import MetricsGui
-from PyQt5.QtWidgets import QApplication
 import sys
 import pprint
 
@@ -334,14 +329,9 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
         #Checks if the stopwatch has reached 1 minute. If it has, it checks if the negative reward
         #threshold has been reach, which would trigger the start of a new episode
-        print((time.time() - self.threshold_start_time))
-        print("self.negative_reward" + str(self.negative_reward))
-        #print("self.negative_reward" + str(self.negative_reward))
         if((time.time() - self.threshold_start_time) >= 5):
-            print("IN THE IF: self.negative_reward" + str(self.negative_reward))
             if(self.negative_reward <= -100):
                 reward -= 20
-                print(" LESS REWARD FOR U")
                 done = 1
         #else:
             #self.negative_reward = 0
@@ -351,10 +341,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
         #else:
         #    if(reward < 0):
         #        self.negative_reward = self.negative_reward + reward
-
-        ###print("Previous distance to target:", prev_dist_to_target)
-        ##print("Current distance to target:", curr_dist_to_target)
-        #print("Current position is:", self.state["position"])
         return reward, done
 
     def step(self, action):

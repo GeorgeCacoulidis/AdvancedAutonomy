@@ -10,6 +10,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
 
+save_dir = "./PathTraversalDQN"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -43,7 +44,7 @@ model = DQN(
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
     device="cuda",
-    tensorboard_log="./tb_logs/"
+    tensorboard_log=f"{save_dir}/tb_logs/"
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -52,8 +53,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQN_ALPHA_reloaded_best_model",
-    log_path=f"./DQN_ALPHA_reloaded_eval_logs",
+    best_model_save_path=save_dir + str(time.time()),
+    log_path=save_dir + str(time.time()),
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
@@ -68,11 +69,10 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./DQN_ALPHA_reloaded_" + str(time.time()),
+    tb_log_name="./traversal_dqn" + str(time.time()),
     **kwargs
 )
 
 # Save policy weights
 
-model.save("DQN_ALPHA_reloaded")
-
+model.save(f"{save_dir}/final_save")
