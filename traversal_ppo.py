@@ -2,6 +2,9 @@ import setup_path
 import gym
 import airgym
 import time
+import logging
+import os
+import traceback
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
@@ -79,11 +82,26 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-model.learn(
-    total_timesteps=1e5,
-    tb_log_name="./PPO_ALPHA3_" + str(time.time()),
-    **kwargs
-)
+directory = "./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/"
+folder = ""
+learned = 0
+while (learned == 0):
+    learned = 1
+    try:
+        model.learn(
+            total_timesteps=1e5,
+            tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
+            **kwargs
+        )
+    except Exception as e:
+        logging.error(traceback.format_exc(e))
+        learned = 0
+        for filename in os.scandir(directory):
+            if folder == "":
+                folder = filename.name
+            elif filename.name > folder:
+                folder = filename
+        model = PPO.load(directory + folder + "/best_model.zip")
 
 # Save policy weights
 model.save("PPO_ALPHA3")

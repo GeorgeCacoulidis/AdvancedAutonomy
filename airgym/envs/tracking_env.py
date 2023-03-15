@@ -16,10 +16,10 @@ from pynput.keyboard import Key, Controller
 
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 300
-BOX_LIM_X_MAX = 900
-BOX_LIM_Y_MIN = 200
-BOX_LIM_Y_MAX = 500
+BOX_LIM_X_MIN = 450
+BOX_LIM_X_MAX = 750
+BOX_LIM_Y_MIN = 250
+BOX_LIM_Y_MAX = 450
 keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
@@ -41,7 +41,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(7)
+        self.action_space = spaces.Discrete(13)
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
@@ -91,14 +91,17 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # the actual movement of the drone
     def _do_action(self, action):
-        quad_offset = self.interpret_action(action)
-        quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
-        self.drone.moveByVelocityAsync(
-            quad_vel.x_val + quad_offset[0],
-            quad_vel.y_val + quad_offset[1],
-            quad_vel.z_val + quad_offset[2],
-            1,
-        ).join()
+        quad_offset, rotate = self.interpret_action(action)
+        if rotate == 0:
+            quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
+            self.drone.moveByVelocityAsync(
+                quad_vel.x_val + quad_offset[0],
+                quad_vel.y_val + quad_offset[1],
+                quad_vel.z_val + quad_offset[2],
+                1,
+            ).join()
+        else:
+            self.drone.moveByRollPitchYawZAsync(quad_offset[0], quad_offset[1], quad_offset[2])
         #print(self.state["position"]) # debug 
 
     def isCentered(self):
@@ -149,6 +152,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         box = self.calcBoxSize()
         if(box < self.boxSize):
             reward - 10
+        if(box < 100):
+            reward = reward - 100
+            done = 1
         self.calcBoxSize = box
                     
         return reward, done
@@ -199,6 +205,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     # based on the action passed it does another action associated
     def interpret_action(self, action):
+        rotate = 0
         if action == 0:
             quad_offset = (self.step_length, 0, 0)
         elif action == 1:
@@ -211,7 +218,25 @@ class  DroneCarTrackingEnv(AirSimEnv):
             quad_offset = (0, -self.step_length, 0)
         elif action == 5:
             quad_offset = (0, 0, -self.step_length)
+        elif action == 6:
+            rotate = 1
+            quad_offset = (.52, 0, 0)
+        elif action == 7:
+            rotate = 1
+            quad_offset = (0, .52, 0)
+        elif action == 8:
+            rotate = 1
+            quad_offset = (0, 0, .52)
+        elif action == 9:
+            rotate = 1
+            quad_offset = (-.52, 0, 0)
+        elif action == 10:
+            rotate = 1
+            quad_offset = (0, -.52, 0)
+        elif action == 11:
+            rotate = 1
+            quad_offset = (0, 0, -.52)
         else:
             quad_offset = (0, 0, 0)
 
-        return quad_offset
+        return quad_offset, rotate
