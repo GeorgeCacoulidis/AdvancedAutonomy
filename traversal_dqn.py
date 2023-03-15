@@ -13,7 +13,6 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
 
-save_dir = "./PathTraversalDQN"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -47,7 +46,7 @@ model = DQN(
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
     device="cuda",
-    tensorboard_log=f"{save_dir}/tb_logs/"
+    tensorboard_log="./tb_logs/"
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -93,5 +92,8 @@ while (learned == 0):
         model.set_env(env)
 
 # Save policy weights
+
+model.save("DQN_ALPHA_reloaded")
+
 
 model.save(f"{save_dir}/final_save")

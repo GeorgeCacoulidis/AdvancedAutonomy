@@ -10,7 +10,10 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
-# Create a DummyVecEnv for main airsim gym env
+
+save_dir = "./CarTrackingDQNUpdatedBox"
+
+# Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
     [
         lambda: Monitor(
@@ -27,7 +30,7 @@ env = DummyVecEnv(
 # Wrap env as VecTransposeImage to allow SB to handle frame observations
 #env = VecTransposeImage(env)
 
-# Initialize RL algorithm type and parametersll
+# Initialize RL algorithm type and parameters
 model = DQN(
     "MlpPolicy",
     env,
@@ -35,15 +38,14 @@ model = DQN(
     verbose=1,
     batch_size=32,
     train_freq=4,
-    target_update_interval=1,
+    target_update_interval=1000,
     learning_starts=1000,
     buffer_size=1000000,
-    gradient_steps=10000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
-    device="auto",
-    tensorboard_log="./tracking_tb_logs/"
+    device="cuda",
+    tensorboard_log=f"{save_dir}/tb_logs/"
 )
 
 # Create an evaluation callback with the same env, called every 10000 iterations
@@ -52,8 +54,8 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./tracking_training_best_model3",
-    log_path=f"./tracking_training_eval_logs3",
+    best_model_save_path=save_dir + str(time.time()),
+    log_path=save_dir + str(time.time()),
     eval_freq=1000,
 )
 callbacks.append(eval_callback)
@@ -66,25 +68,11 @@ kwargs = {}
 kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
-directory = "./UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model/"
-folder = ""
-learned = 0
-while (learned == 0):
-    learned = 1
-    try:
-        model.learn(
-            total_timesteps=1e5,
-            tb_log_name="UE5_PATH_TRAVERSAL_LIDAR_T1000_" + str(time.time()),
-            **kwargs
-        )
-    except Exception as e:
-        logging.error(traceback.format_exc(e))
-        learned = 0
-        for filename in os.scandir(directory):
-            if folder == "":
-                folder = filename.name
-            elif filename.name > folder:
-                folder = filename
-        model = PPO.load(directory + folder + "/best_model.zip")
-# Save policy weights
-model.save("tracking_training_final_save3")
+model.learn(
+    total_timesteps=1e5,
+    tb_log_name=f"{save_dir}" + str(time.time()),
+    **kwargs
+)
+
+# Save policy weights when training is done
+model.save(f"{save_dir}/final_save")
