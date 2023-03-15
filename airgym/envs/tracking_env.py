@@ -41,7 +41,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(13)
+        self.action_space = spaces.Discrete(11)
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
@@ -98,10 +98,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
                 quad_vel.x_val + quad_offset[0],
                 quad_vel.y_val + quad_offset[1],
                 quad_vel.z_val + quad_offset[2],
-                1,
+                .5,
             ).join()
         else:
-            self.drone.moveByRollPitchYawZAsync(quad_offset[0], quad_offset[1], quad_offset[2])
+            self.drone.moveByRollPitchYawThrottleAsync(quad_offset[0], quad_offset[2], quad_offset[1], 1, .5)
         #print(self.state["position"]) # debug 
 
     def isCentered(self):
@@ -226,16 +226,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
             quad_offset = (0, .52, 0)
         elif action == 8:
             rotate = 1
-            quad_offset = (0, 0, .52)
+            quad_offset = (-.52, 0, 0)
         elif action == 9:
             rotate = 1
-            quad_offset = (-.52, 0, 0)
-        elif action == 10:
-            rotate = 1
             quad_offset = (0, -.52, 0)
-        elif action == 11:
-            rotate = 1
-            quad_offset = (0, 0, -.52)
         else:
             quad_offset = (0, 0, 0)
 
