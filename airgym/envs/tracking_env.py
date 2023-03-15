@@ -155,7 +155,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if(box < 100):
             reward = reward - 100
             done = 1
-        self.calcBoxSize = box
+        self.boxSize = box
                     
         return reward, done
 
