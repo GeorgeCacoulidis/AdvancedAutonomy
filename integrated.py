@@ -6,10 +6,11 @@ import time
 from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
+from envs import trackingTestEnv, traversalTestEnv
 
 def droneTraversal():
     # Create a DummyVecEnv for main airsim gym env
-    env = DummyVecEnv(
+    env = traversalTestEnv(
         [
             lambda: Monitor(
                 gym.make(
@@ -24,16 +25,17 @@ def droneTraversal():
 
     model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
     obs = env.reset()
-    while True:
+    while env.getDist() > 10:
         action, _states = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
         env.render()
 
 def detectionModel():
     #TODO
+    print("TEST")
 
 def carTracking():
-    env = DummyVecEnv(
+    env = traversalTestEnv(
         [
             lambda: Monitor(
                 gym.make(
@@ -51,6 +53,8 @@ def carTracking():
     obs = env.reset()
     while True:
         action, _states = model.predict(obs)
+        if(env.inSight() == 0):
+            break
         obs, rewards, dones, info = env.step(action)
         env.render()
 

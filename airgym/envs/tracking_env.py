@@ -51,6 +51,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def __del__(self):
         self.drone.reset()
 
+    def inSight(self):
+        return self.state["inSight"]
+
     def _setup_flight(self):
         self.drone.reset()
 

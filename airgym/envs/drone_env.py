@@ -75,7 +75,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
 
-    def get_dist(self, position):
+    def getDist(self, position):
         return self.get_destination() - position
         
     def detect_obstacle(self, box):
@@ -238,7 +238,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.state["velocity"] = self.drone_state.kinematics_estimated.linear_velocity
 
         self.state["prev_dist"] = self.state["curr_dist"]
-        self.state["curr_dist"] = self.get_dist(self.state["position"])
+        self.state["curr_dist"] = self.getDist(self.state["position"])
 
         collision = self.drone.simGetCollisionInfo().has_collided
         self.state["collision"] = collision
