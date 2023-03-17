@@ -7,10 +7,10 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
+from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
 from scheduling import linear_schedule
 
-save_dir = "./PathTraversalDQN"
+save_dir = "./PathTraversalDQNWithRotation"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -39,7 +39,7 @@ model = DQN(
     train_freq=4,
     target_update_interval=10000,
     learning_starts=10000,
-    buffer_size=1000000,
+    buffer_size=10000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
@@ -53,11 +53,21 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=save_dir + str(time.time()),
-    log_path=save_dir + str(time.time()),
+    best_model_save_path=save_dir,
+    log_path=save_dir,
     eval_freq=5000,
 )
 callbacks.append(eval_callback)
+
+# Add a checkpoint callback to save the model and buffer every N steps
+checkpoint_callback = CheckpointCallback(
+    save_freq=500, 
+    save_path=f"{save_dir}/checkpoint_save" + str(time.time()),
+    name_prefix='DQN_rotation_added',
+    save_replay_buffer=True,
+    save_vecnormalize=True
+)
+callbacks.append(checkpoint_callback)
 
 # Create a progress bar callback to estimate time left
 progress_bar_callback = ProgressBarCallback()
@@ -69,7 +79,7 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name="./traversal_dqn" + str(time.time()),
+    tb_log_name="./traversal_dqn_rotation" + str(time.time()),
     **kwargs
 )
 
