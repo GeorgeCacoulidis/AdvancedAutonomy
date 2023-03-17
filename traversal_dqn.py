@@ -95,3 +95,5 @@ while (learned == 0):
 
 model.save("DQN_ALPHA_reloaded")
 
+
+model.save(f"{save_dir}/final_save")
