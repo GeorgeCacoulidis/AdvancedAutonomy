@@ -52,7 +52,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.reset()
 
     def _setup_flight(self):
-        #self.drone.reset()0
+        self.drone.reset()
 
         # keyboard reset used to be here 
         self.drone.enableApiControl(True)
@@ -155,7 +155,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if(box < 100):
             reward = reward - 100
             done = 1
-        self.calcBoxSize = box
+        self.boxSize = box
                     
         return reward, done
 
