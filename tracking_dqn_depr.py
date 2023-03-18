@@ -7,11 +7,11 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
+from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
 import torch as th
 from scheduling import linear_schedule
 
-save_dir = "./CarTrackingDQNUpdatedBox"
+save_dir = "./CarTrackingDQNV3"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
@@ -54,11 +54,19 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=save_dir + str(time.time()),
-    log_path=save_dir + str(time.time()),
+    best_model_save_path=f"{save_dir}/best_model",
+    log_path=f"{save_dir}/eval_logs",
     eval_freq=1000,
 )
 callbacks.append(eval_callback)
+
+# Add a checkpoint callback 
+checkpoint_callback = CheckpointCallback(
+    save_freq=1000, 
+    save_path=f'{save_dir}/checkpoint_logs/' + str(time.time()),
+    save_replay_buffer=True,
+)
+callbacks.append(checkpoint_callback)
 
 # Create a progress bar callback to estimate time left
 progress_bar_callback = ProgressBarCallback()
