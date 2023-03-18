@@ -28,7 +28,7 @@ env = DummyVecEnv(
 
 
 #model = DQN.load("F:\\AdvancedAutonomy\\UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model\\1675152517.535831\\best_model.zip")
-model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
+model = DQN.load("./PathTraversalDQN1679106959.4097579/best_model.zip")
 
 obs = env.reset()
 while True:
