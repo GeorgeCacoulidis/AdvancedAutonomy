@@ -16,10 +16,11 @@ from pynput.keyboard import Key, Controller
 
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 500
-BOX_LIM_X_MAX = 750
-BOX_LIM_Y_MIN = 250
-BOX_LIM_Y_MAX = 450
+BOX_LIM_X_MIN = 400
+BOX_LIM_X_MAX = 800
+BOX_LIM_Y_MIN = 200
+BOX_LIM_Y_MAX = 500
+MIN_BOX_SIZE = 10000
 keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
@@ -135,7 +136,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if(self.state["yMax"] > BOX_LIM_Y_MAX):
             dist = dist + self.state["yMax"] - BOX_LIM_Y_MAX
         
-        return dist / 5
+        return dist / 10
 
 
 
@@ -148,14 +149,14 @@ class  DroneCarTrackingEnv(AirSimEnv):
             return -100, 1
 
         if(self.isCentered()):
-            reward = reward + 20
+            reward = reward + 30
         else:
             reward = reward - self.calcOffset()   
 
         box = self.calcBoxSize()
         if(box < self.boxSize):
-            reward - 10
-        if(box < 100):
+            reward - 25
+        if(box < MIN_BOX_SIZE):
             reward = reward - 100
             done = 1
         self.boxSize = box
