@@ -69,8 +69,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
-        keyboard.press("l")
-        keyboard.release("l")
+        self.drone.simDestroyObject([string for string in self.drone.simListSceneObjects() if string.startswith("carActor_Lambo")][0])
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
