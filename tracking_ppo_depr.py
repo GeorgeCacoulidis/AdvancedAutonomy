@@ -17,10 +17,10 @@ env = DummyVecEnv(
     [
         lambda: Monitor(
             gym.make(
-                "airgym:airsim-drone-sample-v1",
+                "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
-                step_length=0.25,
-                image_shape=(19,),
+                step_length=1,
+                image_shape=(5,),
             )
         )
     ]
@@ -31,7 +31,7 @@ model = PPO(
     "MlpPolicy",
     env,
     learning_rate=linear_schedule(0.1),
-    n_steps=500,
+    n_steps=2048,
     verbose=1,
     batch_size=64,
     n_epochs=10,
@@ -79,7 +79,7 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e5,
-    tb_log_name=f"{save_dir}/ppo_updated_bounding_box"
+    tb_log_name="ppo_updated_bounding_box",
     **kwargs
 )
 

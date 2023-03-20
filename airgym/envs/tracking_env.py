@@ -20,7 +20,7 @@ BOX_LIM_X_MIN = 400
 BOX_LIM_X_MAX = 800
 BOX_LIM_Y_MIN = 200
 BOX_LIM_Y_MAX = 500
-MIN_BOX_SIZE = 10000
+MIN_BOX_SIZE = 100
 keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
