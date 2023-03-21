@@ -2,6 +2,9 @@ import setup_path
 import gym
 import airgym
 import time
+import logging
+import os
+import traceback
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
@@ -42,7 +45,7 @@ model = DQN(
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
-    device="auto",
+    device="cuda",
     tensorboard_log="./tracking_tb_logs/"
 )
 
@@ -78,13 +81,33 @@ while (learned == 0):
             **kwargs
         )
     except Exception as e:
-        logging.error(traceback.format_exc(e))
+        #logging.error(traceback.format_exc(e))
         learned = 0
         for filename in os.scandir(directory):
             if folder == "":
-                folder = filename.name
-            elif filename.name > folder:
-                folder = filename
-        model = PPO.load(directory + folder + "/best_model.zip")
+                folder = str(filename.name)
+            elif str(filename.name) > folder:
+                folder = str(filename.name)
+        if(folder == ""):
+            model = DQN(
+                "MlpPolicy",
+                env,
+                learning_rate=linear_schedule(0.1),
+                verbose=1,
+                batch_size=32,
+                train_freq=4,
+                target_update_interval=1,
+                learning_starts=1000,
+                buffer_size=1000000,
+                gradient_steps=10000,
+                max_grad_norm=10,
+                exploration_fraction=0.1,
+                exploration_final_eps=0.01,
+                device="cuda",
+                tensorboard_log="./tracking_tb_logs/"
+            )
+        else:
+            model = DQN.load(directory + folder + "/best_model.zip")
+        model.set_env(env)
 # Save policy weights
 model.save("tracking_training_final_save3")
