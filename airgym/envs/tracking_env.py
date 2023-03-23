@@ -12,16 +12,12 @@ import time
 import torch
 import traceback
 
-from pynput.keyboard import Key, Controller
-
-
 #Bounding Box centering limit
 BOX_LIM_X_MIN = 400
 BOX_LIM_X_MAX = 800
 BOX_LIM_Y_MIN = 200
 BOX_LIM_Y_MAX = 500
 MIN_BOX_SIZE = 10000
-keyboard = Controller()
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -183,6 +179,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         camera_name = "0"
         image_type = airsim.ImageType.Scene
         raw_image = self.drone.simGetImage(camera_name, image_type)
+
+        while not raw_image:
+            print("Image from drone invalid. Retrying after 5ms")
+            time.sleep(0.005)
+            raw_image = self.drone.simGetImage(camera_name, image_type)
 
         return raw_image
 
