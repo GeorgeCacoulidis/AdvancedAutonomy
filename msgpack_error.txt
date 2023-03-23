@@ -1,0 +1,64 @@
+ERROR:tornado.application:Uncaught exception, closing connection.
+Traceback (most recent call last):
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\iostream.py", line 562, in wrapper
+    return callback(*args)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 23, in on_read
+    for message in self._unpacker:
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 626, in __next__
+    ret = self._unpack(EX_CONSTRUCT)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 579, in _unpack
+    ret.append(self._unpack(EX_CONSTRUCT))
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 600, in _unpack
+    ret[key] = self._unpack(EX_CONSTRUCT)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 608, in _unpack
+    obj = obj.decode(self._encoding, self._unicode_errors)
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x80 in position 0: invalid start byte
+ERROR:tornado.application:Exception in callback functools.partial(<function wrap.<locals>.null_wrapper at 0x00000247059BC1F0>)
+Traceback (most recent call last):
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\ioloop.py", line 605, in _run_callback
+    ret = callback()
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\iostream.py", line 562, in wrapper
+    return callback(*args)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 23, in on_read
+    for message in self._unpacker:
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 626, in __next__
+    ret = self._unpack(EX_CONSTRUCT)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 579, in _unpack
+    ret.append(self._unpack(EX_CONSTRUCT))
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 600, in _unpack
+    ret[key] = self._unpack(EX_CONSTRUCT)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpack\fallback.py", line 608, in _unpack
+    obj = obj.decode(self._encoding, self._unicode_errors)
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x80 in position 0: invalid start byte
+ERROR:tornado.application:Uncaught exception, closing connection.
+Traceback (most recent call last):
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\iostream.py", line 562, in wrapper
+    return callback(*args)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 24, in on_read
+    self.on_message(message)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 29, in on_message
+    raise RPCError("Invalid MessagePack-RPC protocol: message = {0}".format(message))
+msgpackrpc.error.RPCError: Invalid MessagePack-RPC protocol: message = object_id
+ERROR:tornado.application:Exception in callback functools.partial(<function wrap.<locals>.null_wrapper at 0x00000247400E14C0>)
+Traceback (most recent call last):
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\ioloop.py", line 605, in _run_callback
+    ret = callback()
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\iostream.py", line 562, in wrapper
+    return callback(*args)
+  File "C:\Users\George\anaconda3\lib\site-packages\tornado\stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 24, in on_read
+    self.on_message(message)
+  File "C:\Users\George\anaconda3\lib\site-packages\msgpackrpc\transport\tcp.py", line 29, in on_message
+    raise RPCError("Invalid MessagePack-RPC protocol: message = {0}".format(message))
+msgpackrpc.error.RPCError: Invalid MessagePack-RPC protocol: message = object_id

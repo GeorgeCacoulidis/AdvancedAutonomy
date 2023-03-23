@@ -15,7 +15,7 @@ env = DummyVecEnv(
         lambda: Monitor(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
-                ip_address="127.0.0.2",
+                ip_address="127.0.0.1",
                 step_length=0.25,
                 image_shape=(19,),
             )
@@ -27,8 +27,8 @@ env = DummyVecEnv(
 #env = VecTransposeImage(env)
 
 
-#model = DQN.load("F:\\AdvancedAutonomy\\UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model\\1675152517.535831\\best_model.zip")
-model = PPO.load("./PPO_Fixed_best_model/best_model.zip")
+model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
+#model = PPO.load("./PPO_Fixed_best_model/best_model.zip")
 
 obs = env.reset()
 while True:
