@@ -69,7 +69,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
-        self.drone.simDestroyObject([string for string in self.drone.simListSceneObjects() if string.startswith("carActor_Lambo")][0])
+        self.removeCar()
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -175,7 +175,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_test_environment')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_test_environment_v2.pt')
         print(model)
         return model
 
@@ -237,3 +237,19 @@ class  DroneCarTrackingEnv(AirSimEnv):
             quad_offset = (0, 0, 0)
 
         return quad_offset, rotate
+
+    # Removes the car in the environment and waits until its there, if not already
+    def removeCar(self):
+        carFound = False
+        while not carFound:
+            listOfSceneObjects = self.drone.simListSceneObjects()
+
+            for string in listOfSceneObjects:
+                if string.startswith("carActor_Lambo"):
+                    carFound = True
+                    self.drone.simDestroyObject(string)
+
+            # If the car was not found, then we sleep to give it time to load in
+            if not carFound:
+                print("Car was not found. Sleeping for 500ms before next check")
+                time.sleep(0.5)
