@@ -12,15 +12,12 @@ import time
 import torch
 import traceback
 
-from pynput.keyboard import Key, Controller
-
-
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 550
-BOX_LIM_X_MAX = 650
-BOX_LIM_Y_MIN = 300
-BOX_LIM_Y_MAX = 400
-keyboard = Controller()
+BOX_LIM_X_MIN = 400
+BOX_LIM_X_MAX = 800
+BOX_LIM_Y_MIN = 200
+BOX_LIM_Y_MAX = 500
+MIN_BOX_SIZE = 10000
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -37,7 +34,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "xMax": 0,
             "yMin": 0,
             "yMax": 0,
-            "inSight": 1,
+            "inSight": 0,
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
@@ -68,8 +65,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
-        keyboard.press("l")
-        keyboard.release("l")
+        self.removeCar()
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -83,7 +79,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
-        ambulance_found, x_min, x_max, y_min, y_max = self.detection(image)
+        ambulance_found, x_min, x_max, y_min, y_max = self.detection(image, self.state["inSight"], self.state["xMin"], self.state["xMax"], self.state["yMin"], self.state["yMax"])
 
         self.state["inSight"] = int(ambulance_found)
         self.state["xMin"] = x_min
@@ -135,7 +131,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if(self.state["yMax"] > BOX_LIM_Y_MAX):
             dist = dist + self.state["yMax"] - BOX_LIM_Y_MAX
         
-        return dist / 5
+        return dist / 10
 
 
 
@@ -148,14 +144,14 @@ class  DroneCarTrackingEnv(AirSimEnv):
             return -100, 1
 
         if(self.isCentered()):
-            reward = reward + 20
+            reward = reward + 30
         else:
             reward = reward - self.calcOffset()   
 
         box = self.calcBoxSize()
         if(box < self.boxSize):
-            reward - 10
-        if(box < 100):
+            reward - 25
+        if(box < MIN_BOX_SIZE):
             reward = reward - 100
             done = 1
         self.boxSize = box
@@ -175,7 +171,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_test_environment')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_test_environment_v2.pt')
         print(model)
         return model
 
@@ -184,9 +180,14 @@ class  DroneCarTrackingEnv(AirSimEnv):
         image_type = airsim.ImageType.Scene
         raw_image = self.drone.simGetImage(camera_name, image_type)
 
+        while not raw_image:
+            print("Image from drone invalid. Retrying after 5ms")
+            time.sleep(0.005)
+            raw_image = self.drone.simGetImage(camera_name, image_type)
+
         return raw_image
 
-    def detection(self, raw_image):
+    def detection(self, raw_image, prev_car_found, prev_x_min, prev_x_max, prev_y_min, prev_y_max):
         png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
         result = self.detectionModel(png, size = 1216)
@@ -195,13 +196,31 @@ class  DroneCarTrackingEnv(AirSimEnv):
         x_max = -1
         y_min = -1
         y_max = -1
-        for box in result.xyxy[0]: 
-            if box[5]==0:
-                ambulance_found = True
-                x_min = float(box[0])
-                y_min = float(box[1])
-                x_max = float(box[2])
-                y_max = float(box[3])        
+
+        ret_center_x = -2000
+        ret_center_y = -2000
+    
+        if (not prev_car_found):
+            prev_center_x = 608
+            prev_center_y = 342
+        else:
+            prev_center_x = (prev_x_min + prev_x_max) / 2
+            prev_center_y = (prev_y_min + prev_y_max) / 2
+
+        for box in result.xyxy[0]:
+            if box[5]==0 and box[4] > .5:
+                cur_center_x = (float(box[0]) + float(box[2])) / 2
+                cur_center_y = (float(box[1]) + float(box[3])) / 2
+
+                if (abs(cur_center_x - prev_center_x) + abs(cur_center_y - prev_center_y) <
+                    abs(ret_center_x - prev_center_x) + abs(ret_center_y - prev_center_y)):
+                    x_max = float(box[2])
+                    x_min = float(box[0])
+                    y_max = float(box[3])
+                    y_min = float(box[1])
+                    ambulance_found = True
+                    ret_center_x = cur_center_x
+                    ret_center_y = cur_center_y
 
         return ambulance_found, x_min, x_max, y_min, y_max
 
@@ -237,3 +256,19 @@ class  DroneCarTrackingEnv(AirSimEnv):
             quad_offset = (0, 0, 0)
 
         return quad_offset, rotate
+
+    # Removes the car in the environment and waits until its there, if not already
+    def removeCar(self):
+        carFound = False
+        while not carFound:
+            listOfSceneObjects = self.drone.simListSceneObjects()
+
+            for string in listOfSceneObjects:
+                if string.startswith("carActor_Lambo"):
+                    carFound = True
+                    self.drone.simDestroyObject(string)
+
+            # If the car was not found, then we sleep to give it time to load in
+            if not carFound:
+                print("Car was not found. Sleeping for 500ms before next check")
+                time.sleep(0.5)
