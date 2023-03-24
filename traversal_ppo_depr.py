@@ -81,7 +81,7 @@ kwargs["callback"] = callbacks
 # Train for a certain number of timesteps
 model.learn(
     total_timesteps=1e6,
-    tb_log_name=f"{save_dir}"
+    tb_log_name=f"{save_dir}",
     **kwargs
 )
 
