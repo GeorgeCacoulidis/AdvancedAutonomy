@@ -39,9 +39,9 @@ model = DQN(
     verbose=1,
     batch_size=32,
     train_freq=4,
-    target_update_interval=10000,
+    target_update_interval=1000,
     learning_starts=10000,
-    buffer_size=1000000,
+    buffer_size=10000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
@@ -89,7 +89,7 @@ while (learned == 0):
             elif filename.name > folder:
                 folder = filename
         model = DQN.load(directory + folder + "/best_model.zip")
-        model.set_env(env)
+        model.set_env(env) 
 
 # Save policy weights
 

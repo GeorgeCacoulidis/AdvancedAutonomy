@@ -204,6 +204,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
                 x_max = float(box[2])
                 y_max = float(box[3])        
 
+        print(result.pandas())
         return ambulance_found, x_min, x_max, y_min, y_max
 
 
