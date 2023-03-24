@@ -11,7 +11,7 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
-save_dir = "./tracking_dqn_depr_3_19_23"
+save_dir = "./tracking_dqn_depr_3_23_23"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(

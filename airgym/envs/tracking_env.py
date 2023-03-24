@@ -17,12 +17,7 @@ BOX_LIM_X_MIN = 400
 BOX_LIM_X_MAX = 800
 BOX_LIM_Y_MIN = 200
 BOX_LIM_Y_MAX = 500
-<<<<<<< HEAD
-MIN_BOX_SIZE = 100
-keyboard = Controller()
-=======
 MIN_BOX_SIZE = 10000
->>>>>>> b61639556c95e4a805ade6aaf98326c702b3ab0f
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
