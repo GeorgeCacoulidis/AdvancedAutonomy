@@ -11,7 +11,7 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
-save_dir = "./tracking_dqn_depr_3_23_23"
+save_dir = "./tracking_dqn_depr_3_26_23"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
@@ -37,10 +37,10 @@ model = DQN(
     learning_rate=linear_schedule(0.1),
     verbose=1,
     batch_size=32,
-    train_freq=4,
-    target_update_interval=10000,
-    learning_starts=10000,
-    buffer_size=100000,
+    train_freq=2,
+    target_update_interval=1000,
+    learning_starts=2000,
+    buffer_size=50000,
     max_grad_norm=10,
     exploration_fraction=0.1,
     exploration_final_eps=0.01,
@@ -63,8 +63,7 @@ callbacks.append(eval_callback)
 # Add a checkpoint callback 
 checkpoint_callback = CheckpointCallback(
     save_freq=1000, 
-    save_path=f'{save_dir}/checkpoint_logs/' + str(time.time()),
-    save_replay_buffer=True,
+    save_path=f"{save_dir}/checkpoint_logs/"
 )
 callbacks.append(checkpoint_callback)
 
