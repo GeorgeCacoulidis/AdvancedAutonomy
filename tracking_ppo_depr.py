@@ -10,7 +10,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
 from scheduling import linear_schedule
 
-save_dir="tracking_ppo_depr_updated_bounding_box"
+save_dir="./tracking_ppo_depr_3_24"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -20,7 +20,7 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=1,
-                image_shape=(19,),
+                image_shape=(5,),
             )
         )
     ]
