@@ -100,7 +100,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
                 .5,
             ).join()
         else:
-            self.drone.rotateByYawRateAsync(quad_offset, 0.5)
+            self.drone.rotateByYawRateAsync(quad_offset, 1)
         #print(self.state["position"]) # debug 
 
     def isCentered(self):
