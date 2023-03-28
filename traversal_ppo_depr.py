@@ -9,7 +9,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
 
-save_dir = "./PPO_3_24_2023"
+save_dir = "./PPO_3_26_2023"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(

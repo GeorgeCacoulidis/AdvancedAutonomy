@@ -9,6 +9,8 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from envs import trackingTestEnv, traversalTestEnv
 
+mode = 0
+
 def droneTraversal():
     # Create a DummyVecEnv for main airsim gym env
     env = traversalTestEnv(
@@ -26,13 +28,16 @@ def droneTraversal():
 
     model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
     obs = env.reset()
-    while env.getDist() > 10:
+    while env.dist() > 10:
         action, _states = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
+        print("in the while for traversal")
         env.render()
+    mode = 1
 
 def detectionModel():
     in_sight, x_min, x_max, y_min, y_max = object_detection_orbit.orbit()
+    mode = 2
 
 def carTracking():
     env = traversalTestEnv(
@@ -58,13 +63,10 @@ def carTracking():
         obs, rewards, dones, info = env.step(action)
         env.render()
 
-mode = 0
-
 while True:
     if mode == 0:
         droneTraversal()
     if mode == 1:
         detectionModel()
-    if(mode == 3):
+    if(mode == 2):
         carTracking()
-

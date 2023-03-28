@@ -75,8 +75,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
         return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
 
-    def getDist(self, position):
-        return self.get_destination() - position
+    def getDist(self):
+        return self.get_destination() - self.state["position"]
         
     def detect_obstacle(self, box):
         point_count =  0
@@ -238,7 +238,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         self.state["velocity"] = self.drone_state.kinematics_estimated.linear_velocity
 
         self.state["prev_dist"] = self.state["curr_dist"]
-        self.state["curr_dist"] = self.getDist(self.state["position"])
+        self.state["curr_dist"] = self.getDist()
 
         collision = self.drone.simGetCollisionInfo().has_collided
         self.state["collision"] = collision
@@ -256,7 +256,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         quad_offset, rotate = self.interpret_action(action)
         if rotate == 0:
             quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
-            self.drone.moveByVelocityAsync(
+            self.drone.moveByVelocityBodyFrameAsync(
                 quad_vel.x_val + quad_offset[0],
                 quad_vel.y_val + quad_offset[1],
                 quad_vel.z_val + quad_offset[2],

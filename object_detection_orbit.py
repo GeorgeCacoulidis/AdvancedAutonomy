@@ -254,6 +254,3 @@ def orbit():
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
     return object_detected, x_min, x_max, y_min, y_max
-
-orbit()
-
