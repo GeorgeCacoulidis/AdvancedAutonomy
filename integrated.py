@@ -2,6 +2,7 @@ import setup_path
 import gym
 import airgym
 import time
+import math
 import object_detection_orbit
 
 from stable_baselines3 import DQN, PPO
@@ -11,9 +12,7 @@ from envs import trackingTestEnv, traversalTestEnv
 
 mode = 0
 
-def droneTraversal():
-    # Create a DummyVecEnv for main airsim gym env
-    env = traversalTestEnv(
+env = DummyVecEnv(
         [
             lambda: Monitor(
                 gym.make(
@@ -26,17 +25,44 @@ def droneTraversal():
         ]
     )
 
+def calc_dist(dist):
+    return math.sqrt(pow(dist.x_val, 2) + pow(dist.y_val, 2) + pow(dist.z_val, 2))
+
+def droneTraversal():
+    done = 0
+    # Create a DummyVecEnv for main airsim gym env
+    
     model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
+
+    # Debug
+    print("Loaded DQN model")
+
     obs = env.reset()
-    while env.dist() > 10:
+    while done != 1:
+        # Dbug 
+        print("Entered while loop")
+
         action, _states = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
-        print("in the while for traversal")
+
+        print(info[-1]["curr_dist"])
+
+        dist = info[-1]["curr_dist"]
+        euclid_dist = calc_dist(dist)
+
+        if(euclid_dist < 85):
+            print("entered done if")
+            global mode
+            mode = 1
+            done = 1
         env.render()
-    mode = 1
+        
+
+    
 
 def detectionModel():
     in_sight, x_min, x_max, y_min, y_max = object_detection_orbit.orbit()
+    global mode 
     mode = 2
 
 def carTracking():
@@ -63,10 +89,15 @@ def carTracking():
         obs, rewards, dones, info = env.step(action)
         env.render()
 
-while True:
-    if mode == 0:
-        droneTraversal()
-    if mode == 1:
-        detectionModel()
-    if(mode == 2):
-        carTracking()
+def main():
+    global mode
+    while True:
+        if mode == 0:
+            # debug
+            print("Main mode 0 entered")
+            droneTraversal()
+        if mode == 1:
+            detectionModel()
+        if(mode == 2):
+            carTracking()
+main()

@@ -256,7 +256,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         quad_offset, rotate = self.interpret_action(action)
         if rotate == 0:
             quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
-            self.drone.moveByVelocityBodyFrameAsync(
+            self.drone.moveByVelocityAsync(
                 quad_vel.x_val + quad_offset[0],
                 quad_vel.y_val + quad_offset[1],
                 quad_vel.z_val + quad_offset[2],
@@ -295,10 +295,13 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
             reward = -100
-            done = 1
+            #done = 1
             return reward, done
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
+        
+        # debug 
+        print("how far from target: ",curr_dist_to_target)
         if curr_dist_to_target <= 10:
             done = 1
             reward += 500
@@ -350,10 +353,8 @@ class  AirSimDroneEnvV1(AirSimEnv):
     def step(self, action):
         self._do_action(action)
         obs = self._get_obs()
-        reward, done = self._compute_reward()
+        reward, done = self._compute_reward()            
 
-        #self.metricsGUI.refresh()
-        #self.metricsGUI.refresh()
         return obs, reward, done, self.state
 
     def reset(self):

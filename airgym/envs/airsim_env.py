@@ -29,3 +29,7 @@ class AirSimEnv(gym.Env):
 
     def render(self):
         return self._get_obs()
+    
+    # for integrated.py traversal
+    def getDist():
+        raise NotImplementedError()

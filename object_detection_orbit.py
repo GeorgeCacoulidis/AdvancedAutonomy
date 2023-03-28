@@ -80,7 +80,7 @@ class OrbitNavigator:
         z = start.z_val # use current altitude then
 
         print("climbing to position: {},{},{}".format(start.x_val, start.y_val, z))
-        self.client.moveToPositionAsync(start.x_val, start.y_val, z, self.speed).join()
+        #self.client.moveToPositionAsync(start.x_val, start.y_val, z, self.speed).join()
         self.z = z
         
         print("ramping up to speed...")
@@ -247,7 +247,7 @@ def orbit():
     client.simSetCameraPose(0, camera_pose)
 
     # Just to move the drone into the air, only for testing
-    client.moveToPositionAsync(0, 0, -15, 2).join()
+    #client.moveToPositionAsync(0, 0, -15, 2).join()
 
     # The two statements that you actually need. 
     nav = OrbitNavigator(client, 4, 1, 99, ['1', '0']) #(client, radius, speed, iterations, center (tbh idk what this does))
