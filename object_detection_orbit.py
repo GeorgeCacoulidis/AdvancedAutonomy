@@ -234,7 +234,7 @@ def detection(raw_image, model):
 
     return ambulance_found, x_min, x_max, y_min, y_max, conf
 
-def test1():
+def orbit():
     # Overall, the Position and OrbitNavigator classes are both for the orbit part. The rest is for object detection, but you need both.
     # I also changed the detection function slightly so it retuns the confidence level as well.
 
@@ -243,15 +243,17 @@ def test1():
     model = load_model()
     
     # Change the camera position to look 15 degrees down. I thought it provided a better view for the drone.
-    camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-.26, 0, 0))  #PRY in radians
+    camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-.52, 0, 0))  #PRY in radians
     client.simSetCameraPose(0, camera_pose)
 
     # Just to move the drone into the air, only for testing
-    client.moveToPositionAsync(-4.589557, -5.4538, -15, 2).join()
+    client.moveToPositionAsync(0, 0, -15, 2).join()
 
     # The two statements that you actually need. 
     nav = OrbitNavigator(client, 4, 1, 99, ['1', '0']) #(client, radius, speed, iterations, center (tbh idk what this does))
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
-test1()
+    return object_detected, x_min, x_max, y_min, y_max
+
+orbit()
 

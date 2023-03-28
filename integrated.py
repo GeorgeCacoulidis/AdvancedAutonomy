@@ -2,6 +2,7 @@ import setup_path
 import gym
 import airgym
 import time
+import object_detection_orbit
 
 from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.monitor import Monitor
@@ -31,8 +32,7 @@ def droneTraversal():
         env.render()
 
 def detectionModel():
-    #TODO
-    print("TEST")
+    in_sight, x_min, x_max, y_min, y_max = object_detection_orbit.orbit()
 
 def carTracking():
     env = traversalTestEnv(
