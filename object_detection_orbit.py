@@ -242,15 +242,15 @@ def orbit():
     client = connect_to_client()
     model = load_model()
     
-    # Change the camera position to look 15 degrees down. I thought it provided a better view for the drone.
-    camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-.52, 0, 0))  #PRY in radians
+    # Change the camera position to look ~60 degrees down. I thought it provided a better view for the drone.
+    camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0))  #PRY in radians
     client.simSetCameraPose(0, camera_pose)
 
     # Just to move the drone into the air, only for testing
     #client.moveToPositionAsync(0, 0, -15, 2).join()
 
     # The two statements that you actually need. 
-    nav = OrbitNavigator(client, 4, 1, 99, ['1', '0']) #(client, radius, speed, iterations, center (tbh idk what this does))
+    nav = OrbitNavigator(client, 4, 3, 99, ['1', '0']) #(client, radius, speed, iterations, center (tbh idk what this does))
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
     return object_detected, x_min, x_max, y_min, y_max
