@@ -194,7 +194,7 @@ class OrbitNavigator:
         return 1
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3')
+    model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3_5')
     
     return model
 
