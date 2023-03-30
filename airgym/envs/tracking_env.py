@@ -13,10 +13,10 @@ import torch
 import traceback
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 400
-BOX_LIM_X_MAX = 800
-BOX_LIM_Y_MIN = 200
-BOX_LIM_Y_MAX = 500
+BOX_LIM_X_MIN = 500
+BOX_LIM_X_MAX = 700
+BOX_LIM_Y_MIN = 225
+BOX_LIM_Y_MAX = 475
 MIN_BOX_SIZE = 10000
 
 class  DroneCarTrackingEnv(AirSimEnv):
