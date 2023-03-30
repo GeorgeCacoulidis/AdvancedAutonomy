@@ -17,7 +17,7 @@ BOX_LIM_X_MIN = 500
 BOX_LIM_X_MAX = 700
 BOX_LIM_Y_MIN = 225
 BOX_LIM_Y_MAX = 475
-MIN_BOX_SIZE = 10000
+MIN_BOX_SIZE = 12500
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
