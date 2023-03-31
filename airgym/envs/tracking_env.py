@@ -28,7 +28,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
         self.boxSize = 0
-        self.height = self.drone.getMultirotorState().gps_location.altitude
         
         self.state = {
             "xMin": 0,
@@ -58,7 +57,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
         # keyboard reset used to be here 
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
-
+        self.drone.takeoffAsync()
+        self.height = self.drone.getMultirotorState().gps_location.altitude
+        # Angling -60 degrees downward
+        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0)))
         # Set home position and velocity
         #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
         #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
@@ -160,7 +162,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
             done = 1
         self.boxSize = box
 
-        if(self.drone.getMultirotorState().gps_location.altitude > self.height + 2):
+        if(self.drone.getMultirotorState().gps_location.altitude > self.height + 3):
             reward = reward - 100
             done = 1
                     
@@ -239,6 +241,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         else:
             quad_offset = (0, 0, 0)
 
+        print("Action: ", action, " - ", "quad_offset: ", quad_offset)
         return quad_offset, rotate
 
     # Removes the car in the environment and waits until its there, if not already
