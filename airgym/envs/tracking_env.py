@@ -28,7 +28,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
         self.boxSize = 0
-
+        self.height = self.drone.getMultirotorState().gps_location.altitude
+        
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -144,17 +145,24 @@ class  DroneCarTrackingEnv(AirSimEnv):
             return -100, 1
 
         if(self.isCentered()):
-            reward = reward + 30
+            reward = reward + 50
         else:
-            reward = reward - self.calcOffset()   
+            #reward = reward - self.calcOffset()   
+            reward = reward - 50
 
         box = self.calcBoxSize()
         if(box < self.boxSize):
-            reward - 25
+            reward = reward - 50
+        else:
+            reward = reward + 50
         if(box < MIN_BOX_SIZE):
             reward = reward - 100
             done = 1
         self.boxSize = box
+
+        if(self.drone.getMultirotorState().gps_location.altitude > self.height + 2):
+            reward = reward - 100
+            done = 1
                     
         return reward, done
 
