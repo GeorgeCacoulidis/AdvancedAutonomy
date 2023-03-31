@@ -19,7 +19,7 @@ env = DummyVecEnv(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
                 ip_address="127.0.0.1",
-                step_length=1,
+                step_length=7,
                 image_shape=(19,),
             )
         )
@@ -38,10 +38,10 @@ model = DQN(
     batch_size=32,
     train_freq=2,
     target_update_interval=1000,
-    learning_starts=2000,
+    learning_starts=10000,
     buffer_size=50000,
     max_grad_norm=10,
-    exploration_fraction=0.1,
+    exploration_fraction=0.2,
     exploration_final_eps=0.01,
     device="cuda",
     tensorboard_log=f"{save_dir}/tb_logs/"
