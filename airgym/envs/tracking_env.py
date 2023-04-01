@@ -82,7 +82,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
-        ambulance_found, x_min, x_max, y_min, y_max = self.detection(image)
+        conf, x_min, x_max, y_min, y_max = self.detection(image)
 
         self.state["inSight"] = int(ambulance_found)
         self.state["xMin"] = x_min
@@ -181,7 +181,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5n.pt')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5s_v2.pt')
         print(model)
         return model
 
@@ -201,20 +201,20 @@ class  DroneCarTrackingEnv(AirSimEnv):
         png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
         result = self.detectionModel(png, size = 1216)
-        ambulance_found = False
+        conf = 0
         x_min = -1
         x_max = -1
         y_min = -1
         y_max = -1
         for box in result.xyxy[0]: 
             if box[5]==0:
-                ambulance_found = True
+                conf = float(box[4])
                 x_min = float(box[0])
                 y_min = float(box[1])
                 x_max = float(box[2])
                 y_max = float(box[3])        
 
-        return ambulance_found, x_min, x_max, y_min, y_max
+        return conf, x_min, x_max, y_min, y_max
 
 
     # based on the action passed it does another action associated
