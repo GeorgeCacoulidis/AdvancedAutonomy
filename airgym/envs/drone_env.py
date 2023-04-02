@@ -263,7 +263,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
                 .5,
             ).join()
         else:
-            self.drone.moveByRollPitchYawThrottleAsync(quad_offset[0], quad_offset[2], quad_offset[1], 1, .5)
+            self.drone.rotateByYawRateAsync(quad_offset, .5)
 
     def calc_dist(self, pointA, pointB):
         return math.sqrt(pow(pointA.x_val - pointB.x_val, 2) + pow(pointA.y_val - pointB.y_val, 2) + pow(pointA.z_val - pointB.z_val, 2))
@@ -378,16 +378,10 @@ class  AirSimDroneEnvV1(AirSimEnv):
             quad_offset = (0, 0, -self.step_length)
         elif action == 6:
             rotate = 1
-            quad_offset = (.52, 0, 0)
+            quad_offset = -30
         elif action == 7:
             rotate = 1
-            quad_offset = (0, .52, 0)
-        elif action == 8:
-            rotate = 1
-            quad_offset = (-.52, 0, 0)
-        elif action == 9:
-            rotate = 1
-            quad_offset = (0, -.52, 0)
+            quad_offset = 30
         else:
             quad_offset = (0, 0, 0)
 
