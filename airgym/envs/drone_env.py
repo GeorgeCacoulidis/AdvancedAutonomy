@@ -36,7 +36,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(11)
+        self.action_space = spaces.Discrete(9)
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
