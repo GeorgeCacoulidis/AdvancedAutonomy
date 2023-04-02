@@ -34,7 +34,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "xMax": 0,
             "yMin": 0,
             "yMax": 0,
-            "inSight": 1,
+            "Conf": 1,
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
@@ -78,13 +78,13 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         self.getModelResults()
 
-        return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["inSight"]]
+        return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"]]
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
         conf, x_min, x_max, y_min, y_max = self.detection(image)
 
-        self.state["inSight"] = int(ambulance_found)
+        self.state["Conf"] = conf
         self.state["xMin"] = x_min
         self.state["xMax"] = x_max
         self.state["yMin"] = y_min
@@ -141,10 +141,20 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def _compute_reward(self):
         reward = 0
         done = 0
-        if(self.state["inSight"] == 0):
+        if(self.state["Conf"] < .4):
             self.reset()
             print("Testing: " + str(done))
             return -100, 1
+        elif(self.state["Conf"] > .6):
+            reward = reward + 25
+        elif(self.state["Conf"] <= .6 and self.state["Conf"] >= .4):
+            time.sleep(0.1)
+            self.getModelResults()
+            if(self.state["Conf"] < .4):
+                self.reset()
+                print("Testing: " + str(done))
+                return -100, 1
+            
 
         if(self.isCentered()):
             reward = reward + 50
