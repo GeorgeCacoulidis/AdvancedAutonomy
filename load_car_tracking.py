@@ -23,7 +23,7 @@ env = DummyVecEnv(
     ]
 )
 
-model = DQN.load("./tracking_training_best_model3.zip")
+model = DQN.load("./best_model.zip")
 
 obs = env.reset()
 while True:

@@ -74,7 +74,6 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # relatively close coors for UE5 City 
         return airsim.Vector3r(70.68778991699219, 198.01834106445312, -17.886749267578125)
 
-
     def getDist(self):
         return self.get_destination() - self.state["position"]
         
@@ -353,7 +352,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
     def step(self, action):
         self._do_action(action)
         obs = self._get_obs()
-        reward, done = self._compute_reward()            
+        reward, done = self._compute_reward()  
 
         return obs, reward, done, self.state
 

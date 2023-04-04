@@ -68,7 +68,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+        #self.resetToCar()
         self.removeCar()
+        
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -136,6 +138,35 @@ class  DroneCarTrackingEnv(AirSimEnv):
         
         return dist / 10
 
+
+    def resetToCar(self):
+        change_x = 0
+        change_y = 0
+        listOfSceneObjects = self.drone.simListSceneObjects()
+        name = ""
+        for string in listOfSceneObjects:
+            if string.startswith("carActor_Lambo"):
+                name = string
+                break
+            
+        pose = self.drone.simGetVehiclePose()
+        car = self.drone.simGetObjectPose(name)
+
+        angle = airsim.to_eularian_angles(car.orientation)[2]
+        if angle < 0:
+            angle += math.pi
+        else:
+            angle = angle-math.pi
+            change_x = 7 * np.sin(angle)
+            change_y = 4 * np.cos(angle)
+
+			# Set the new position
+        pose.position.x_val = car.position.x_val - change_x
+        pose.position.y_val = car.position.y_val + change_y
+
+        pose.orientation = car.orientation
+
+        self.drone.simSetVehiclePose(pose, ignore_collision=False)
 
 
     def _compute_reward(self):
