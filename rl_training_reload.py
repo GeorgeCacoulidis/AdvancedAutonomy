@@ -10,18 +10,20 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 from scheduling import linear_schedule
 
+save_dir = "./tracking_dqn_depr_4_4_23"
+
 # Reload the previous model: "best_model.zip path", "tb_logs path"
-model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip", tensorboard_log="./tb_logs/DQN_ALPHA2_1676611422.436817_1")
+model = DQN.load(f"{save_dir}/best_model/best_model.zip")
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
     [
         lambda: Monitor(
             gym.make(
-                "airgym:airsim-drone-sample-v1",
+                "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
-                step_length=0.25,
-                image_shape=(19,),
+                step_length=7,
+                image_shape=(11,),
             )
         )
     ]
@@ -36,9 +38,9 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=f"./DQN_ALPHA2_best_model",
-    log_path=f"./DQN_ALPHA2_eval_logs",
-    eval_freq=5000,
+    best_model_save_path=f"{save_dir}/best_model",
+    log_path=f"{save_dir}/eval_logs",
+    eval_freq=1000,
 )
 callbacks.append(eval_callback)
 
@@ -57,6 +59,6 @@ model.learn(
     **kwargs
 )
 
-# Save policy weights
-model.save("DQN_ALPHA2")
+# Save policy weights when training is done
+model.save(f"{save_dir}/final_save")
 

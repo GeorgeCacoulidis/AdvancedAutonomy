@@ -11,7 +11,7 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
-save_dir = "./tracking_dqn_depr_3_26_23"
+save_dir = "./tracking_dqn_depr_4_5_23"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
@@ -21,7 +21,7 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=7,
-                image_shape=(5,),
+                image_shape=(11,),
             )
         )
     ]
@@ -36,13 +36,13 @@ model = DQN(
     env,
     learning_rate=linear_schedule(0.1),
     verbose=1,
-    batch_size=32,
+    batch_size=64,
     train_freq=2,
     target_update_interval=1000,
-    learning_starts=2000,
+    learning_starts=10000,
     buffer_size=50000,
     max_grad_norm=10,
-    exploration_fraction=0.1,
+    exploration_fraction=0.2,
     exploration_final_eps=0.01,
     device="cuda",
     tensorboard_log=f"{save_dir}/tb_logs/"
