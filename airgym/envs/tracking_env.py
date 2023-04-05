@@ -222,7 +222,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5s_v3.pt')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5s_v4.pt')
         print(model)
         return model
 
