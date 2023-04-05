@@ -25,6 +25,19 @@ env = DummyVecEnv(
         ]
     )
 
+envTracking = traversalTestEnv(
+        [
+            lambda: Monitor(
+                gym.make(
+                    "airsim-car-tracking-v1",
+                    ip_address="127.0.0.1",
+                    step_length=1,
+                    image_shape=(11,),
+                )
+            )
+        ]
+    )
+
 def calc_dist(dist):
     return math.sqrt(pow(dist.x_val, 2) + pow(dist.y_val, 2) + pow(dist.z_val, 2))
 
@@ -66,7 +79,7 @@ def detectionModel():
     mode = 2
 
 def carTracking():
-    env = traversalTestEnv(
+    envTracking = traversalTestEnv(
         [
             lambda: Monitor(
                 gym.make(
@@ -81,13 +94,13 @@ def carTracking():
 
     model = DQN.load("./tracking_training_best_model3.zip")
 
-    obs = env.reset()
+    obs = envTracking.reset()
     while True:
         action, _states = model.predict(obs)
-        if(env.inSight() == 0):
+        obs, rewards, dones, info = envTracking.step(action)
+        envTracking.render()
+        if(info["Conf"] <50):
             break
-        obs, rewards, dones, info = env.step(action)
-        env.render()
 
 def main():
     global mode
