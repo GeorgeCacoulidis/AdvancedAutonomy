@@ -27,7 +27,7 @@ env = DummyVecEnv(
 #env = VecTransposeImage(env)
 
 
-#model = DQN.load("F:\\AdvancedAutonomy\\UE5_PATH_TRAVERSAL_LIDAR_T1000_best_model\\1675152517.535831\\best_model.zip")
+#model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
 model = PPO.load("./PPO_Fixed_best_model/best_model.zip")
 
 obs = env.reset()

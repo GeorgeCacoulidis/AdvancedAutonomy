@@ -8,9 +8,7 @@ import gym
 from gym import spaces
 from airgym.envs.airsim_env import AirSimEnv
 import time
-from PyQt5.QtWidgets import QApplication
 import sys
-from PyQt5.QtWidgets import QApplication
 import sys
 import pprint
 
@@ -294,6 +292,12 @@ class  AirSimDroneEnvV1(AirSimEnv):
 
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
+            reward = -100
+            done = 1
+            return reward, done
+        
+        # if the drone goes to high penalty and reset
+        if curr_l.z_val < -23:
             reward = -100
             done = 1
             return reward, done
