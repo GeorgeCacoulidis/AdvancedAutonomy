@@ -13,11 +13,12 @@ import torch
 import traceback
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 500
-BOX_LIM_X_MAX = 700
-BOX_LIM_Y_MIN = 225
-BOX_LIM_Y_MAX = 475
-MIN_BOX_SIZE = 12500
+BOX_LIM_X_MIN = 300
+BOX_LIM_X_MAX = 900
+BOX_LIM_Y_MIN = 200
+BOX_LIM_Y_MAX = 500
+MIN_BOX_SIZE = 7000
+BOX_STANDARDIZATION = 50000
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -27,7 +28,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.negative_reward = 0
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
-        self.boxSize = 0
         
         self.state = {
             "xMin": 0,
@@ -35,11 +35,22 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "yMin": 0,
             "yMax": 0,
             "Conf": 1,
+            "pxMin": 0,
+            "pxMax": 0,
+            "pyMin": 0,
+            "pyMax": 0,
+            "BoxSize": 0,
+            "PrevBoxSize": 0,
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(9)
+        self.action_space = spaces.Discrete(5)
         self._setup_flight()
+
+        #listOfSceneObjects = self.drone.simListSceneObjects()
+        #for string in listOfSceneObjects:
+        #        if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
+        #            self.drone.simDestroyObject(string)
 
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
@@ -58,9 +69,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
         self.drone.takeoffAsync()
-        self.height = self.drone.getMultirotorState().gps_location.altitude
+        # self.height = self.drone.getMultirotorState().gps_location.altitude
         # Angling -60 degrees downward
-        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0)))
+        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
         # Set home position and velocity
         #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
         #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
@@ -68,9 +79,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
-        #self.resetToCar()
         self.removeCar()
-        
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -80,12 +89,18 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         self.getModelResults()
 
-        return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"]]
+        return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"],
+                self.state["pxMin"]/1216, self.state["pxMax"]/1216, self.state["pyMin"]/684, self.state["pyMax"]/684, 
+                self.state["BoxSize"]/BOX_STANDARDIZATION, self.state["PrevBoxSize"]/BOX_STANDARDIZATION]
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
         conf, x_min, x_max, y_min, y_max = self.detection(image)
 
+        self.state["pxMin"] = self.state["xMin"]
+        self.state["pxMax"] = self.state["xMax"]
+        self.state["pyMin"] = self.state["yMin"]
+        self.state["pyMax"] = self.state["yMax"]
         self.state["Conf"] = conf
         self.state["xMin"] = x_min
         self.state["xMax"] = x_max
@@ -99,9 +114,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if rotate == 0:
             quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
             self.drone.moveByVelocityBodyFrameAsync(
-                quad_vel.x_val + quad_offset[0],
-                quad_vel.y_val + quad_offset[1],
-                quad_vel.z_val + quad_offset[2],
+                quad_offset[0],
+                quad_offset[1],
+                quad_offset[2],
                 .5,
             ).join()
         else:
@@ -109,13 +124,16 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #print(self.state["position"]) # debug 
 
     def isCentered(self):
-        if(self.state["xMin"] < BOX_LIM_X_MIN):
+        xCenter = (self.state["xMin"] + self.state["xMax"]) / 2
+        yCenter = (self.state["yMin"] + self.state["yMax"]) / 2
+        print("(", xCenter, ", ", yCenter, ")")
+        if(xCenter < BOX_LIM_X_MIN):
             return False
-        elif(self.state["xMax"] > BOX_LIM_X_MAX):
+        elif(xCenter > BOX_LIM_X_MAX):
             return False
-        elif(self.state["yMin"] < BOX_LIM_Y_MIN):
+        elif(yCenter < BOX_LIM_Y_MIN):
             return False
-        elif(self.state["yMax"] > BOX_LIM_Y_MAX):
+        elif(yCenter > BOX_LIM_Y_MAX):
             return False
         else:
             return True
@@ -139,39 +157,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return dist / 10
 
 
-    def resetToCar(self):
-        change_x = 0
-        change_y = 0
-        listOfSceneObjects = self.drone.simListSceneObjects()
-        name = ""
-        for string in listOfSceneObjects:
-            if string.startswith("carActor_Lambo"):
-                name = string
-                break
-            
-        pose = self.drone.simGetVehiclePose()
-        car = self.drone.simGetObjectPose(name)
-
-        angle = airsim.to_eularian_angles(car.orientation)[2]
-        if angle < 0:
-            angle += math.pi
-        else:
-            angle = angle-math.pi
-            change_x = 7 * np.sin(angle)
-            change_y = 4 * np.cos(angle)
-
-			# Set the new position
-        pose.position.x_val = car.position.x_val - change_x
-        pose.position.y_val = car.position.y_val + change_y
-
-        pose.orientation = car.orientation
-
-        self.drone.simSetVehiclePose(pose, ignore_collision=False)
-
 
     def _compute_reward(self):
         reward = 0
         done = 0
+        print("Confidence: ", self.state["Conf"])
         if(self.state["Conf"] < .4):
             self.reset()
             print("Testing: " + str(done))
@@ -181,29 +171,28 @@ class  DroneCarTrackingEnv(AirSimEnv):
         elif(self.state["Conf"] <= .6 and self.state["Conf"] >= .4):
             time.sleep(0.1)
             self.getModelResults()
-            if(self.state["Conf"] < .4):
+            if(self.state["Conf"] < .6):
                 self.reset()
                 print("Testing: " + str(done))
                 return -100, 1
             
-
         if(self.isCentered()):
             reward = reward + 50
+            print("******Centered!")
         else:
             #reward = reward - self.calcOffset()   
             reward = reward - 50
+            print("Uncentered!")
 
-        box = self.calcBoxSize()
-        if(box < self.boxSize):
+        self.state["PrevBoxSize"] = self.state["BoxSize"]
+        self.state["BoxSize"] = self.calcBoxSize()
+        
+        print("Box Size: ", self.state["BoxSize"])
+        if(self.state["BoxSize"] < self.state["PrevBoxSize"]):
             reward = reward - 50
         else:
             reward = reward + 50
-        if(box < MIN_BOX_SIZE):
-            reward = reward - 100
-            done = 1
-        self.boxSize = box
-
-        if(self.drone.getMultirotorState().gps_location.altitude > self.height + 3):
+        if(self.state["BoxSize"] < MIN_BOX_SIZE):
             reward = reward - 100
             done = 1
                     
@@ -214,7 +203,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self._do_action(action)
         obs = self._get_obs()
         reward, done = self._compute_reward()
-
+        print("**********************")
+        print("Obs: ", obs)
+        print("Reward: ", reward)
+        print("**********************")
         return obs, reward, done, self.state
 
     def reset(self):
@@ -222,7 +214,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5s_v3.pt')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3.5.pt')
         print(model)
         return model
 
@@ -262,24 +254,27 @@ class  DroneCarTrackingEnv(AirSimEnv):
     def interpret_action(self, action):
         rotate = 0
         if action == 0:
+            # Go straight
             quad_offset = (self.step_length, 0, 0)
         elif action == 1:
+            # Go right
             quad_offset = (0, self.step_length, 0)
         elif action == 2:
+            # Go down
             quad_offset = (0, 0, self.step_length)
         elif action == 3:
-            quad_offset = (-self.step_length, 0, 0)
-        elif action == 4:
+            # Go left
             quad_offset = (0, -self.step_length, 0)
-        elif action == 5:
-            quad_offset = (0, 0, -self.step_length)
-        elif action == 6:
-            rotate = 1
-            quad_offset = 30
-        elif action == 7:
-            rotate = 1
-            quad_offset = -30
+        # elif action == 4:
+        #     # Turn right
+        #     rotate = 1
+        #     quad_offset = 30
+        # elif action == 5:
+        #     # Turn left
+        #     rotate = 1
+        #     quad_offset = -30
         else:
+            # Do nothing
             quad_offset = (0, 0, 0)
 
         print("Action: ", action, " - ", "quad_offset: ", quad_offset)
@@ -298,5 +293,5 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
             # If the car was not found, then we sleep to give it time to load in
             if not carFound:
-                print("Car was not found. Sleeping for 500ms before next check")
-                time.sleep(0.5)
+                print("Car was not found. Sleeping for 5ms before next check")
+                time.sleep(0.005)
