@@ -27,6 +27,7 @@ PITCH_ANGLE = -1.5708
 # 90 degree intervals in angles
 # YAW_ROTATIONS_ANGLES = [90, 180, 270, 0]
 
+
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
         super().__init__(image_shape)
@@ -36,6 +37,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
         # self.next_yaw = 0
+
+        self.timestepCount = 0
 
         self.state = {
             "xMin": 0,
@@ -94,6 +97,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
         self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
         self.resetToCar()
+        #self.removeCar()
+        #self.checkForResetCar()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
@@ -220,6 +225,15 @@ class  DroneCarTrackingEnv(AirSimEnv):
         print("Obs: ", obs)
         print("Reward: ", reward)
         return obs, reward, done, self.state
+    
+    def checkForResetCar(self):
+        if self.timestepCount == 10:
+            self.removeCar()
+            self.resetToCar()
+            self.timestepCount = 0
+        else:
+            self.timestepCount = self.timestepCount + 1
+
 
     def reset(self):
         self._setup_flight()
