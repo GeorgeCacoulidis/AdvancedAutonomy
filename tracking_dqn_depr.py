@@ -11,7 +11,8 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
-save_dir = "./tracking_dqn_depr_3_26_23"
+# Change date to current
+save_dir = "./tracking_dqn_depr_4_6_23"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
@@ -21,7 +22,7 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=7,
-                image_shape=(5,),
+                image_shape=(11,),
             )
         )
     ]
