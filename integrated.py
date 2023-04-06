@@ -11,15 +11,34 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from envs import trackingTestEnv, traversalTestEnv
 
 mode = 0
+env = None
 
-env = DummyVecEnv(
+def changeToTraversal():
+    global env
+
+    env = DummyVecEnv(
         [
             lambda: Monitor(
                 gym.make(
-                    "airgym:airsim-drone-sample-v1",
+                    "airgym:airsim-drone-traversal-demo-v0",
                     ip_address="127.0.0.1",
                     step_length=0.25,
                     image_shape=(19,),
+                )
+            )
+        ]
+    )
+
+def changeToTracking():
+    global env
+    env = DummyVecEnv(
+        [
+            lambda: Monitor(
+                gym.make(
+                    "airgym:airsim-car-tracking-demo-v0",
+                    ip_address="127.0.0.1",
+                    step_length=7,
+                    image_shape=(11,),
                 )
             )
         ]
@@ -56,8 +75,6 @@ def droneTraversal():
             mode = 1
             done = 1
         env.render()
-        
-
     
 
 def detectionModel():
@@ -66,28 +83,16 @@ def detectionModel():
     mode = 2
 
 def carTracking():
-    env = traversalTestEnv(
-        [
-            lambda: Monitor(
-                gym.make(
-                    "airsim-car-tracking-v1",
-                    ip_address="127.0.0.1",
-                    step_length=1,
-                    image_shape=(5,),
-                )
-            )
-        ]
-    )
 
-    model = DQN.load("./tracking_training_best_model3.zip")
+    model = DQN.load("./car_tracking_mvp.zip")
 
     obs = env.reset()
     while True:
         action, _states = model.predict(obs)
-        if(env.inSight() == 0):
-            break
         obs, rewards, dones, info = env.step(action)
         env.render()
+        if(info[-1]["Conf"] < 50):
+            break
 
 def main():
     global mode
@@ -95,9 +100,15 @@ def main():
         if mode == 0:
             # debug
             print("Main mode 0 entered")
+            changeToTraversal()
             droneTraversal()
         if mode == 1:
+            # debug
+            print("Main mode 1 entered")
             detectionModel()
         if(mode == 2):
+            # debug
+            print("Main mode 2 entered")
+            changeToTracking()
             carTracking()
 main()

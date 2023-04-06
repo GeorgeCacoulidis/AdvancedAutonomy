@@ -294,7 +294,7 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
             reward = -100
-            #done = 1
+            done = 1
             return reward, done
 
         # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
