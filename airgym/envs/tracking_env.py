@@ -48,7 +48,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "pyMin": 0,
             "pyMax": 0,
             "BoxSize": 0,
-            "PrevBoxSize": 0,
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
@@ -109,7 +108,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"],
                 self.state["pxMin"]/1216, self.state["pxMax"]/1216, self.state["pyMin"]/684, self.state["pyMax"]/684, 
-                self.state["BoxSize"]/BOX_STANDARDIZATION, self.state["PrevBoxSize"]/BOX_STANDARDIZATION]
+                self.state["BoxSize"]/BOX_STANDARDIZATION]
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
@@ -202,14 +201,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
             reward = reward - 50
             print("Uncentered!")
 
-        self.state["PrevBoxSize"] = self.state["BoxSize"]
         self.state["BoxSize"] = self.calcBoxSize()
         
         print("Box Size: ", self.state["BoxSize"])
-        if(self.state["BoxSize"] < self.state["PrevBoxSize"]):
-            reward = reward - 50
-        else:
-            reward = reward + 50
+        
         if(self.state["BoxSize"] < MIN_BOX_SIZE):
             reward = reward - 100
             done = 1
