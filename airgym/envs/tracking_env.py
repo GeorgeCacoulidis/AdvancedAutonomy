@@ -13,12 +13,12 @@ import torch
 import traceback
 
 #Bounding Box centering limit
-BOX_LIM_X_MIN = 300
-BOX_LIM_X_MAX = 900
-BOX_LIM_Y_MIN = 200
-BOX_LIM_Y_MAX = 500
+BOX_LIM_X_MIN = 400
+BOX_LIM_X_MAX = 800
+BOX_LIM_Y_MIN = 250
+BOX_LIM_Y_MAX = 450
 MIN_BOX_SIZE = 1000
-BOX_STANDARDIZATION = 50000
+BOX_STANDARDIZATION = 15000
 
 # 90 degrees directly downward
 PITCH_ANGLE = -1.5708
