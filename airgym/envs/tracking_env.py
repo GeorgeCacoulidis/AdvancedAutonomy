@@ -34,8 +34,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.step_length = step_length
         self.image_shape = image_shape
         self.negative_reward = 0
-        self.threshold_start_time = time.time()
+        self.start_time = time.time()
         self.detectionModel = self.load_model()
+
         # self.next_yaw = 0
 
         self.timestepCount = 0
@@ -227,7 +228,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return obs, reward, done, self.state
     
     def checkForResetCar(self):
-        if self.timestepCount == 10:
+        if (time.time() - self.start_time) >= 120:
             self.removeCar()
             self.resetToCar()
             self.timestepCount = 0
