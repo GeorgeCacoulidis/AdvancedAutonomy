@@ -228,12 +228,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return obs, reward, done, self.state
     
     def checkForResetCar(self):
-        if (time.time() - self.start_time) >= 120:
+        if (time.time() - self.start_time) >= 130:
             self.removeCar()
             self.resetToCar()
-            self.timestepCount = 0
-        else:
-            self.timestepCount = self.timestepCount + 1
+            self.start_time = time.time()
 
 
     def reset(self):
