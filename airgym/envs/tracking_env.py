@@ -97,8 +97,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
         self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
+        # ex
         self.resetToCar()
+        # ahmad ? 
         #self.removeCar()
+        # sam ? 
         #self.checkForResetCar()
 
         #Setting point of origin
@@ -347,5 +350,5 @@ class  DroneCarTrackingEnv(AirSimEnv):
         pose.position.x_val = car.position.x_val
         pose.position.y_val = car.position.y_val
         pose.position.z_val = pose.position.z_val - 15
-        # pose.orientation = car.orientation	
+        pose.orientation = car.orientation	
         self.drone.simSetVehiclePose(pose, ignore_collision=False)

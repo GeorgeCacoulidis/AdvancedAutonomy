@@ -2,6 +2,8 @@ import setup_path
 import gym
 import airgym
 import time
+import pytz
+import datetime
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
@@ -10,7 +12,14 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback, CheckpointCallback
 from scheduling import linear_schedule
 
-save_dir = "./PathTraversalDQNWithRotation"
+
+# Setup things for nice timezone formatting 
+tz = pytz.timezone("US/Eastern")
+now = datetime.datetime.now(tz)
+formatted_date = now.strftime("%m_%d_%y_%H_%M")
+
+# Change date to current
+save_dir = f"./{formatted_date}_DQN_DRONE_TRAVERSAL"
 
 # Create a DummyVecEnv for main airsim gym env
 env = DummyVecEnv(
@@ -53,18 +62,16 @@ eval_callback = EvalCallback(
     env,
     callback_on_new_best=None,
     n_eval_episodes=5,
-    best_model_save_path=save_dir,
-    log_path=save_dir,
-    eval_freq=5000,
+    best_model_save_path=f"{save_dir}/best_model",
+    log_path=f"{save_dir}/eval_logs/",
+    eval_freq=1000,
 )
 callbacks.append(eval_callback)
 
 # Add a checkpoint callback to save the model and buffer every N steps
 checkpoint_callback = CheckpointCallback(
     save_freq=500, 
-    save_path=f"{save_dir}/checkpoint_save" + str(time.time()),
-    name_prefix='DQN_rotation_added',
-    save_replay_buffer=True,
+    save_path=f"{save_dir}/checkpoint_save",
     save_vecnormalize=True
 )
 callbacks.append(checkpoint_callback)
@@ -78,8 +85,8 @@ kwargs["callback"] = callbacks
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=1e5,
-    tb_log_name="./traversal_dqn_rotation" + str(time.time()),
+    total_timesteps=1e6,
+    tb_log_name=f"{save_dir}/tb_logs/",
     **kwargs
 )
 
