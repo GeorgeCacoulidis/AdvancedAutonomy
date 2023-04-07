@@ -16,7 +16,7 @@ from scheduling import linear_schedule
 # Setup things for nice timezone formatting 
 tz = pytz.timezone("US/Eastern")
 now = datetime.datetime.now(tz)
-formatted_date = now.strftime("%m_%d_%y_%H_M")
+formatted_date = now.strftime("%m_%d_%y_%H_%M")
 
 # Change date to current
 save_dir = f"./{formatted_date}_DQN_CAR_TRACKING"
