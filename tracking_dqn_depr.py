@@ -2,6 +2,7 @@ import setup_path
 import gym
 import airgym
 import time
+import pytz
 import datetime
 
 from stable_baselines3 import DQN
@@ -12,9 +13,10 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
-# Get the current date
-today = datetime.date.today()
-formatted_date = today.strftime("%m_%d_%y")
+# Setup things for nice timezone formatting 
+tz = pytz.timezone("US/Eastern")
+now = datetime.datetime.now(tz)
+formatted_date = now.strftime("%m_%d_%y_%H%M")
 
 # Change date to current
 save_dir = f"./{formatted_date}_DQN_CAR_TRACKING"
