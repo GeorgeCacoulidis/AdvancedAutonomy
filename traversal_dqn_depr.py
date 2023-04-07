@@ -46,9 +46,9 @@ model = DQN(
     verbose=1,
     batch_size=32,
     train_freq=2,
-    target_update_interval=1000,
-    learning_starts=10000,
-    buffer_size=50000,
+    target_update_interval=10000,
+    learning_starts=100000,
+    buffer_size=100000,
     max_grad_norm=10,
     exploration_fraction=0.2,
     exploration_final_eps=0.01,
@@ -64,13 +64,13 @@ eval_callback = EvalCallback(
     n_eval_episodes=5,
     best_model_save_path=f"{save_dir}/best_model",
     log_path=f"{save_dir}/eval_logs/",
-    eval_freq=1000,
+    eval_freq=10000,
 )
 callbacks.append(eval_callback)
 
 # Add a checkpoint callback to save the model and buffer every N steps
 checkpoint_callback = CheckpointCallback(
-    save_freq=500, 
+    save_freq=10000, 
     save_path=f"{save_dir}/checkpoint_save",
     save_vecnormalize=True
 )

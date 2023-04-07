@@ -102,7 +102,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         # ahmad ? 
         #self.removeCar()
         # sam ? 
-        #self.checkForResetCar()
+        self.checkForResetCar()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
@@ -231,8 +231,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return obs, reward, done, self.state
     
     def checkForResetCar(self):
-        if (time.time() - self.start_time) >= 130:
+        if (time.time() - self.start_time) >= 10:
             self.removeCar()
+            time.sleep(0.005)
             self.resetToCar()
             self.start_time = time.time()
         else:
@@ -245,7 +246,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def load_model(self):
         model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3.5.pt')
-        print(model)
+        print("Loaded YOLOV5 Model")
         return model
 
     def raw_image_snapshot(self):
@@ -352,5 +353,5 @@ class  DroneCarTrackingEnv(AirSimEnv):
         pose.position.x_val = car.position.x_val
         pose.position.y_val = car.position.y_val
         pose.position.z_val = pose.position.z_val - 15
-        pose.orientation = car.orientation	
+        #pose.orientation = car.orientation
         self.drone.simSetVehiclePose(pose, ignore_collision=False)
