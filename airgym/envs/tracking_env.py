@@ -106,18 +106,35 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+    
+    def transform_obs(self, responses):
+        img1d = np.array(responses[0].image_data_float, dtype=np.float)
+        img1d = 255 / np.maximum(np.ones(img1d.size), img1d)
+        img2d = np.reshape(img1d, (responses[0].height, responses[0].width))
+
+        from PIL import Image
+
+        image = Image.fromarray(img2d)
+        im_final = np.array(image.resize((84, 84)).convert("L"))
+
+        return im_final.reshape([84, 84, 1])
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
         #responses = self.drone.simGetImages([self.image_request])
         #image = self.transform_obs(responses)
+        response = np.zeros((1216, 684, 2))
+        response[:, :, 0] = self.drone.simGetImages([airsim.ImageRequest(0, airsim.AirSimImageType.Segmentation, False, False)])                                 
+                                 
         self.drone_state = self.drone.getMultirotorState()
 
         self.getModelResults()
 
-        return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"],
-                self.state["pxMin"]/1216, self.state["pxMax"]/1216, self.state["pyMin"]/684, self.state["pyMax"]/684, 
-                self.state["BoxSize"]/BOX_STANDARDIZATION]
+        for i in range (self.state["xMin"], self.state["xMax"] + 1):
+            for j in range(self.state["yMin"], self.state["yMax"]):
+                response[i, j, 0] = self.state["Conf"]          
+
+        return response
 
     def getModelResults(self):
         image = self.raw_image_snapshot()

@@ -28,8 +28,8 @@ env = DummyVecEnv(
             gym.make(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
-                step_length=7,
-                image_shape=(10,),
+                step_length=4,
+                image_shape=(1216, 684, 2),
             )
         )
     ]
@@ -40,14 +40,14 @@ env = DummyVecEnv(
 
 # Initialize RL algorithm type and parameters
 model = DQN(
-    "MlpPolicy",
+    "CnnPolicy",
     env,
     learning_rate=linear_schedule(0.1),
     verbose=1,
     batch_size=32,
     train_freq=2,
     target_update_interval=1000,
-    learning_starts=2000,
+    learning_starts=20000,
     buffer_size=50000,
     max_grad_norm=10,
     exploration_fraction=0.1,
