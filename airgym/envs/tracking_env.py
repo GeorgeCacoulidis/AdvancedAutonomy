@@ -11,6 +11,7 @@ from airgym.envs.airsim_env import AirSimEnv
 import time
 import torch
 import traceback
+import random
 
 #Bounding Box centering limit
 BOX_LIM_X_MIN = 400
@@ -23,9 +24,9 @@ BOX_STANDARDIZATION = 15000
 # 90 degrees directly downward
 PITCH_ANGLE = -1.5708
 # 90 degree intervals in radians (90, 180, 270, 0)
-# YAW_ROTATIONS_RADIANS = [1.5708, 3.14159, 4.71239, 0]
+YAW_ROTATIONS_RADIANS = [1.5708, 3.14159, 4.71239, 0]
 # 90 degree intervals in angles
-# YAW_ROTATIONS_ANGLES = [90, 180, 270, 0]
+YAW_ROTATIONS_ANGLES = [90, 180, 270, 0]
 
 
 class  DroneCarTrackingEnv(AirSimEnv):
@@ -37,7 +38,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.start_time = time.time()
         self.detectionModel = self.load_model()
 
-        # self.next_yaw = 0
+        self.next_yaw = 0
 
         self.timestepCount = 0
 
@@ -83,24 +84,18 @@ class  DroneCarTrackingEnv(AirSimEnv):
         # Get the altitude at spawn
         # self.height = self.drone.getMultirotorState().gps_location.altitude
 
-        # For rotation cycles each setup flight
-        # Getting the next YAW rotation
-        # yaw_radians = YAW_ROTATIONS_RADIANS[self.next_yaw]
-        # yaw_angle = YAW_ROTATIONS_ANGLES[self.next_yaw]
-        # Angling pitch and rotating drone's camera for variability because airsim's stabilization settings prevent that
-        # self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, yaw_radians)))
         # Manually rotating the drone by 90 degrees (AFTER camera is set to avoid undesired camera rotation)
         # self.drone.rotateByYawRateAsync(yaw_angle, 1).join()
-        # Increment the next yaw index
-        # self.next_yaw = (self.next_yaw + 1) % (len(YAW_ROTATIONS_RADIANS))
-        # print("Next YAW to be index: ", self.next_yaw)
 
         # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
-        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
-        self.resetToCar()
+        # self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
         #self.removeCar()
         #self.checkForResetCar()
-
+        self.resetToCar()
+        # Increment the next yaw index
+        # self.next_yaw = (self.next_yaw + 1) % (len(YAW_ROTATIONS_RADIANS))
+        self.next_yaw = random.randint(0, 3)
+        print("Next YAW to be index: ", self.next_yaw)
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
 
@@ -343,9 +338,16 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #     angle = angle-math.pi	
         #     change_x = 7 * np.sin(angle)	
         #     change_y = 4 * np.cos(angle)	
+        # For rotation cycles each setup flight
+        # Getting the next YAW rotation
+        yaw_radians = YAW_ROTATIONS_RADIANS[self.next_yaw]
+        # yaw_angle = YAW_ROTATIONS_ANGLES[self.next_yaw]
+        # Angling pitch and rotating drone's camera for variability because airsim's stabilization settings prevent that
+        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, yaw_radians)))
+        
 			# Set the new position	
         pose.position.x_val = car.position.x_val
         pose.position.y_val = car.position.y_val
         pose.position.z_val = pose.position.z_val - 15
-        # pose.orientation = car.orientation	
-        self.drone.simSetVehiclePose(pose, ignore_collision=False)
+        # pose.orientation = car.orientation
+        self.drone.simSetVehiclePose(airsim.Pose(pose.position, airsim.to_quaternion(0, 0, yaw_radians)), ignore_collision=False)
