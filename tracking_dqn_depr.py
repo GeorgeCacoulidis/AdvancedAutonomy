@@ -29,7 +29,7 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=7,
-                image_shape=(6,),
+                image_shape=(10,),
             )
         )
     ]

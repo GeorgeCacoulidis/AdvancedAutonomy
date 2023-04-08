@@ -48,6 +48,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
             "pyCenter": 0,
             "Conf": 1,
             "BoxSize": 0,
+            "carZ": 0,
+            "carW": 0,
+            "droneZ": 0,
+            "droneW":0,
         }
 
         self.xmin = 0
@@ -98,8 +102,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
         self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
-        #self.resetToCar()
-        self.removeCar()
+        self.resetToCar()
+        #self.removeCar()
         #self.checkForResetCar()
 
         #Setting point of origin
@@ -113,8 +117,10 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
         self.getModelResults()
 
-        return [self.state["Conf"], self.state["xCenter"]/1216, self.state["yCenter"]/684, self.state["pxCenter"]/1216, self.state["pyCenter"]/684,             
-                self.state["BoxSize"]/BOX_STANDARDIZATION]
+        self.getOrientation()
+
+        return [self.state["Conf"], self.state["xCenter"]/1216, self.state["yCenter"]/684, self.state["pxCenter"]/1216, self.state["pyCenter"]/684,            
+                self.state["carZ"], self.state["carW"], self.state["droneZ"], self.state["droneW"], self.state["BoxSize"]/BOX_STANDARDIZATION]
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
@@ -126,7 +132,32 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.ymin = y_min
 
         self.state["Conf"] = conf
-    
+
+    def getOrientation(self):
+        carFound = False
+
+        while not carFound:
+            listOfSceneObjects = self.drone.simListSceneObjects()
+            #print(listOfSceneObjects)
+            name = ""
+            for string in listOfSceneObjects:
+                if string.startswith("carActor_Lambo"):
+                    carFound = True
+                    name = string	
+                    break	
+
+            # If the car was not found, then we sleep to give it time to load in
+            if not carFound:
+                print("Car was not found. Sleeping for 5ms before next check")
+                time.sleep(0.005)	
+
+            	
+        pose = self.drone.simGetVehiclePose()	
+        car = self.drone.simGetObjectPose(name)
+        self.state["carZ"] = car.orientation.z_val
+        self.state["carW"] = car.orientation.w_val
+        self.state["droneZ"] = pose.orientation.z_val
+        self.state["droneW"] = pose.orientation.w_val
 
     # the actual movement of the drone
     def _do_action(self, action):
@@ -366,5 +397,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         pose.position.x_val = car.position.x_val
         pose.position.y_val = car.position.y_val
         pose.position.z_val = pose.position.z_val - 15
+        #print(car.orientation)
         # pose.orientation = car.orientation	
         self.drone.simSetVehiclePose(pose, ignore_collision=False)
