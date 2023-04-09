@@ -63,7 +63,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self.state["inSight"]
 
     def _setup_flight(self):
-        self.drone.reset()
+        #self.drone.reset()
 
         # keyboard reset used to be here 
         self.drone.enableApiControl(True)
