@@ -75,13 +75,13 @@ class  DroneCarTrackingDemo(AirSimEnv):
         #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
-        self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+        #self.origin = self.drone.getMultirotorState().kinematics_estimated.position
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
         #responses = self.drone.simGetImages([self.image_request])
         #image = self.transform_obs(responses)
-        self.drone_state = self.drone.getMultirotorState()
+        #self.drone_state = self.drone.getMultirotorState()
 
         self.getModelResults()
 
