@@ -68,6 +68,10 @@ class OrbitNavigator:
         y_max = -1
         conf = -1
 
+        yaw = 0
+        pitch = -1
+        roll = 0
+
         print("arming the drone...")
         self.client.armDisarm(True)
 
@@ -134,10 +138,14 @@ class OrbitNavigator:
                 print("completed {} orbits".format(count))
             
             self.camera_heading = camera_heading
-            self.client.moveByVelocityZAsync(vx, vy, z, 1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(False, camera_heading))
+            #self.client.moveByVelocityZAsync(vx, vy, z, 1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(False, 15))
+            self.client.rotateByYawRateAsync(15, 1).join()
+            yaw = yaw + .2618
+            orientation = airsim.to_quaternion(pitch, roll, yaw)
+            self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), orientation))
 
         
-        self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
+        #self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
         return object_detected, x_min, x_max, y_min, y_max
 
     def track_orbits(self, angle):

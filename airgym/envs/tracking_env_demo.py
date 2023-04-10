@@ -195,7 +195,6 @@ class  DroneCarTrackingDemo(AirSimEnv):
         return reward, done
 
     def step(self, action):
-        self.getModelResults()
         self._do_action(action)
         obs = self._get_obs()
         reward, done = self._compute_reward()
