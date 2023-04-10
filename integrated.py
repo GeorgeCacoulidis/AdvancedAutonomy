@@ -28,7 +28,7 @@ def changeToTraversal():
             lambda: Monitor(
                 gym.make(
                     "airgym:airsim-drone-traversal-demo-v0",
-                    ip_address="127.0.0.1",
+                    ip_address="host.docker.internal",
                     step_length=0.25,
                     image_shape=(19,),
                 )
@@ -43,7 +43,7 @@ def changeToTracking():
             lambda: Monitor(
                 gym.make(
                     "airgym:airsim-car-tracking-demo-v0",
-                    ip_address="127.0.0.1",
+                    ip_address="host.docker.internal",
                     step_length=7,
                     image_shape=(11,),
                     model = yoloModel,
@@ -59,10 +59,10 @@ def droneTraversal():
     done = 0
     # Create a DummyVecEnv for main airsim gym env
     
-    model = DQN.load("./DQN_ALPHA2_best_model/best_model.zip")
+    model = DQN.load("./DQN_ALPHA2_best_model_desktop/best_model.zip")
 
     # Debug
-    print("Loaded DQN model")
+    print("Loaded DQN model (sanity check variant)")
 
     obs = env.reset()
     while done != 1:

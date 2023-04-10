@@ -214,7 +214,7 @@ def raw_image_snapshot(client):
     return raw_image
 
 def connect_to_client():
-    client = airsim.MultirotorClient()
+    client = airsim.MultirotorClient(host.docker.internal)
     client.confirmConnection()
     client.enableApiControl(True)
     client.armDisarm(True)
@@ -258,7 +258,7 @@ def orbit():
     # Just to move the drone into the air, only for testing
     #client.moveToPositionAsync(0, 0, -15, 2).join()
 
-    # The two statements that you actually need. 
+     The two statements that you actually need. 
     nav = OrbitNavigator(client, 4, 3, 99, ['1', '0']) #(client, radius, speed, iterations, center (tbh idk what this does))
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 

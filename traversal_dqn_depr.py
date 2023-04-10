@@ -18,7 +18,7 @@ env = DummyVecEnv(
         lambda: Monitor(
             gym.make(
                 "airgym:airsim-drone-sample-v1",
-                ip_address="127.0.0.1",
+                ip_address="host.docker.internal",
                 step_length=7,
                 image_shape=(19,),
             )

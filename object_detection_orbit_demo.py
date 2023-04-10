@@ -214,7 +214,7 @@ def raw_image_snapshot(client):
     return raw_image
 
 def connect_to_client():
-    client = airsim.MultirotorClient()
+    client = airsim.MultirotorClient("host.docker.internal")
     client.confirmConnection()
     client.enableApiControl(True)
     
