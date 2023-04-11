@@ -68,6 +68,10 @@ class OrbitNavigator:
         y_max = -1
         conf = -1
 
+        yaw = 0
+        pitch = -1
+        roll = 0
+
         print("arming the drone...")
         self.client.armDisarm(True)
 
@@ -134,7 +138,11 @@ class OrbitNavigator:
                 print("completed {} orbits".format(count))
             
             self.camera_heading = camera_heading
-            self.client.moveByVelocityZAsync(vx, vy, z, 1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(False, camera_heading))
+            #self.client.moveByVelocityZAsync(vx, vy, z, 1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(False, 15))
+            self.client.rotateByYawRateAsync(15, 1).join()
+            yaw = yaw + .2618
+            orientation = airsim.to_quaternion(pitch, roll, yaw)
+            self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), orientation))
 
         
         self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
@@ -209,6 +217,8 @@ def connect_to_client():
     client = airsim.MultirotorClient()
     client.confirmConnection()
     client.enableApiControl(True)
+    client.armDisarm(True)
+    client.takeoffAsync()
     
     return client
 
@@ -238,7 +248,6 @@ def orbit():
     # Overall, the Position and OrbitNavigator classes are both for the orbit part. The rest is for object detection, but you need both.
     # I also changed the detection function slightly so it retuns the confidence level as well.
 
-
     client = connect_to_client()
     model = load_model()
     
@@ -254,3 +263,5 @@ def orbit():
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
     return object_detected, x_min, x_max, y_min, y_max
+
+orbit()

@@ -1,9 +1,10 @@
+import torch
 import setup_path
 import gym
 import airgym
 import time
 import math
-import object_detection_orbit
+import object_detection_orbit_demo
 
 from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.monitor import Monitor
@@ -12,6 +13,12 @@ from envs import trackingTestEnv, traversalTestEnv
 
 mode = 0
 env = None
+
+yoloModel = None
+
+def loadYoloModel():
+    global yoloModel
+    yoloModel = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3_5')
 
 def changeToTraversal():
     global env
@@ -39,6 +46,7 @@ def changeToTracking():
                     ip_address="127.0.0.1",
                     step_length=7,
                     image_shape=(11,),
+                    model = yoloModel,
                 )
             )
         ]
@@ -78,7 +86,7 @@ def droneTraversal():
     
 
 def detectionModel():
-    in_sight, x_min, x_max, y_min, y_max = object_detection_orbit.orbit()
+    in_sight, x_min, x_max, y_min, y_max = object_detection_orbit_demo.orbit(yoloModel)
     global mode 
     mode = 2
 
@@ -106,6 +114,7 @@ def main():
             droneTraversal()
         if mode == 1:
             # debug
+            loadYoloModel()
             print("Main mode 1 entered")
             detectionModel()
         if(mode == 2):
@@ -113,4 +122,7 @@ def main():
             print("Main mode 2 entered")
             changeToTracking()
             carTracking()
+            print("Testing Finished")
+            break
+                    
 main()
