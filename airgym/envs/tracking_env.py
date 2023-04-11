@@ -32,7 +32,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.negative_reward = 0
         self.start_time = time.time()
         self.detectionModel = self.load_model()
-
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -51,6 +50,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.action_space = spaces.Discrete(5)
         self._setup_flight()
 
+
         #listOfSceneObjects = self.drone.simListSceneObjects()
         #for string in listOfSceneObjects:
         #        if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
@@ -67,8 +67,8 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self.state["inSight"]
 
     def _setup_flight(self):
+        self.drone.reset()
 
-        #self.drone.reset()
 
         # keyboard reset used to be here 
         self.drone.enableApiControl(True)
@@ -85,6 +85,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.removeCar()
+        
+        pose = self.drone.simGetVehiclePose()
+        pose.position.x_val = pose.position.x_val - 15
+        self.drone.simSetVehiclePose(pose, ignore_collision=False)
+
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -251,7 +256,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
         result = self.detectionModel(png, size = 1216)
-        print("Panda Results: ", result.pandas())
         conf = 0
         x_min = -1
         x_max = -1
@@ -339,3 +343,4 @@ class  DroneCarTrackingEnv(AirSimEnv):
         pose.position.z_val = pose.position.z_val - 15
         #pose.orientation = car.orientation
         self.drone.simSetVehiclePose(pose, ignore_collision=False)
+

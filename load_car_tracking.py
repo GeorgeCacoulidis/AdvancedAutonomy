@@ -14,16 +14,15 @@ env = DummyVecEnv(
     [
         lambda: Monitor(
             gym.make(
-                "airsim-car-tracking-v1",
+                "airgym:airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
-                step_length=1,
-                image_shape=(5,),
+                step_length=7,
+                image_shape=(11,),
             )
         )
     ]
 )
-
-model = DQN.load("./best_model.zip")
+model = DQN.load("./BestModelCarTracking/best_model.zip")
 
 obs = env.reset()
 while True:
