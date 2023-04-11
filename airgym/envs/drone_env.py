@@ -294,13 +294,17 @@ class  AirSimDroneEnvV1(AirSimEnv):
         # if there has been a collision then huge penalty and reset
         if self.state["collision"]:
             reward = -100
-            #done = 1
+            done = 1
             return reward, done
-
-        # if the drone reaches the target location and didn't collide, huge reward to promote this behavior more often
+        
+        # if the drone goes to high penalty and reset
+        if curr_l.z_val < -23:
+            reward = -100
+            done = 1
+            return reward, done
         
         # debug 
-        print("how far from target: ",curr_dist_to_target)
+        # print("how far from target: ",curr_dist_to_target)
         if curr_dist_to_target <= 10:
             done = 1
             reward += 500

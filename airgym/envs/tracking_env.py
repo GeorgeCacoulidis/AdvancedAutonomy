@@ -13,6 +13,7 @@ import torch
 import traceback
 
 #Bounding Box centering limit
+
 BOX_LIM_X_MIN = 300
 BOX_LIM_X_MAX = 900
 BOX_LIM_Y_MIN = 200
@@ -20,15 +21,17 @@ BOX_LIM_Y_MAX = 500
 MIN_BOX_SIZE = 7000
 BOX_STANDARDIZATION = 50000
 
+# 90 degrees directly downward
+PITCH_ANGLE = -1.5708
+
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
         super().__init__(image_shape)
         self.step_length = step_length
         self.image_shape = image_shape
         self.negative_reward = 0
-        self.threshold_start_time = time.time()
+        self.start_time = time.time()
         self.detectionModel = self.load_model()
-        
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -47,10 +50,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.action_space = spaces.Discrete(5)
         self._setup_flight()
 
-        listOfSceneObjects = self.drone.simListSceneObjects()
-        for string in listOfSceneObjects:
-                if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
-                    self.drone.simDestroyObject(string)
+
+        #listOfSceneObjects = self.drone.simListSceneObjects()
+        #for string in listOfSceneObjects:
+        #        if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
+        #            self.drone.simDestroyObject(string)
 
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
@@ -64,6 +68,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def _setup_flight(self):
         self.drone.reset()
+
 
         # keyboard reset used to be here 
         self.drone.enableApiControl(True)
@@ -80,10 +85,11 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.removeCar()
-
+        
         pose = self.drone.simGetVehiclePose()
         pose.position.x_val = pose.position.x_val - 15
         self.drone.simSetVehiclePose(pose, ignore_collision=False)
+
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -94,8 +100,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.getModelResults()
 
         return [self.state["xMin"]/1216, self.state["xMax"]/1216, self.state["yMin"]/684, self.state["yMax"]/684, self.state["Conf"],
-                self.state["pxMin"]/1216, self.state["pxMax"]/1216, self.state["pyMin"]/684, self.state["pyMax"]/684, 
+                self.state["pxMin"]/1216, self.state["pxMax"]/1216, self.state["pyMin"]/684, self.state["pyMax"]/684,
                 self.state["BoxSize"]/BOX_STANDARDIZATION, self.state["PrevBoxSize"]/BOX_STANDARDIZATION]
+
 
     def getModelResults(self):
         image = self.raw_image_snapshot()
@@ -180,7 +187,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
                 print("Testing: " + str(done))
                 return -100, 1
             
-
         if(self.isCentered()):
             reward = reward + 50
             print("******Centered!")
@@ -188,6 +194,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
             #reward = reward - self.calcOffset()   
             reward = reward - 50
             print("Uncentered!")
+
 
         self.state["PrevBoxSize"] = self.state["BoxSize"]
         self.state["BoxSize"] = self.calcBoxSize()
@@ -213,6 +220,16 @@ class  DroneCarTrackingEnv(AirSimEnv):
         print("Reward: ", reward)
         print("**********************")
         return obs, reward, done, self.state
+    
+    def checkForResetCar(self):
+        if (time.time() - self.start_time) >= 10:
+            self.removeCar()
+            time.sleep(0.005)
+            self.resetToCar()
+            self.start_time = time.time()
+        else:
+            self.resetToCar()
+
 
     def reset(self):
         self._setup_flight()
@@ -300,3 +317,30 @@ class  DroneCarTrackingEnv(AirSimEnv):
             if not carFound:
                 print("Car was not found. Sleeping for 5ms before next check")
                 time.sleep(0.005)
+    
+    def resetToCar(self):	
+        change_x = 0	
+        change_y = 0	
+        listOfSceneObjects = self.drone.simListSceneObjects()	
+        name = ""	
+        for string in listOfSceneObjects:	
+            if string.startswith("carActor_Lambo"):	
+                name = string	
+                break	
+            	
+        pose = self.drone.simGetVehiclePose()	
+        car = self.drone.simGetObjectPose(name)	
+        # angle = airsim.to_eularian_angles(car.orientation)[2]	
+        # if angle < 0:	
+        #     angle += math.pi	
+        # else:	
+        #     angle = angle-math.pi	
+        #     change_x = 7 * np.sin(angle)	
+        #     change_y = 4 * np.cos(angle)	
+			# Set the new position	
+        pose.position.x_val = car.position.x_val
+        pose.position.y_val = car.position.y_val
+        pose.position.z_val = pose.position.z_val - 15
+        #pose.orientation = car.orientation
+        self.drone.simSetVehiclePose(pose, ignore_collision=False)
+

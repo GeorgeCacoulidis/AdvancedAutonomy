@@ -2,6 +2,8 @@ import setup_path
 import gym
 import airgym
 import time
+import pytz
+import datetime
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
@@ -11,8 +13,13 @@ from stable_baselines3.common.callbacks import EvalCallback, ProgressBarCallback
 import torch as th
 from scheduling import linear_schedule
 
+# Setup things for nice timezone formatting 
+tz = pytz.timezone("US/Eastern")
+now = datetime.datetime.now(tz)
+formatted_date = now.strftime("%m_%d_%y_%H_%M")
+
 # Change date to current
-save_dir = "./tracking_dqn_depr_4_6_23"
+save_dir = f"./{formatted_date}_DQN_CAR_TRACKING"
 
 # Create a DummyVecEnv for car tracking airsim gym env
 env = DummyVecEnv(
@@ -22,7 +29,7 @@ env = DummyVecEnv(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
                 step_length=7,
-                image_shape=(11,),
+                image_shape=(10,),
             )
         )
     ]
