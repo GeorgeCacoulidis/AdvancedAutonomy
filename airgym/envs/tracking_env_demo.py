@@ -68,7 +68,9 @@ class  DroneCarTrackingDemo(AirSimEnv):
         #self.drone.takeoffAsync()
         # self.height = self.drone.getMultirotorState().gps_location.altitude
         # Angling -60 degrees downward
+        
         #self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
+
         # Set home position and velocity
         #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
         #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
@@ -81,7 +83,9 @@ class  DroneCarTrackingDemo(AirSimEnv):
     def _get_obs(self):
         #responses = self.drone.simGetImages([self.image_request])
         #image = self.transform_obs(responses)
+
         #self.drone_state = self.drone.getMultirotorState()
+
 
         self.getModelResults()
 
@@ -195,6 +199,7 @@ class  DroneCarTrackingDemo(AirSimEnv):
         return reward, done
 
     def step(self, action):
+        self.getModelResults()
         self._do_action(action)
         obs = self._get_obs()
         reward, done = self._compute_reward()

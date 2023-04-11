@@ -91,6 +91,7 @@ def detectionModel():
     mode = 2
 
 def carTracking():
+
     model = DQN.load("./car_tracking_mvp.zip")
 
     obs = env.reset()
