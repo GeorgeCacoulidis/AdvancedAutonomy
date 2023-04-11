@@ -24,14 +24,6 @@ BOX_STANDARDIZATION = 50000
 
 # 90 degrees directly downward
 PITCH_ANGLE = -1.5708
-<<<<<<< HEAD
-# 90 degree intervals in radians (90, 180, 270, 0)
-YAW_ROTATIONS_RADIANS = [1.5708, 3.14159, 4.71239, 0]
-# 90 degree intervals in angles
-YAW_ROTATIONS_ANGLES = [90, 180, 270, 0]
-
-=======
->>>>>>> c5fb4cb158e01e44334a160157c3edfb125c1b6d
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -41,14 +33,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.negative_reward = 0
         self.start_time = time.time()
         self.detectionModel = self.load_model()
-<<<<<<< HEAD
-
-        self.next_yaw = 0
-
-        self.timestepCount = 0
-
-=======
->>>>>>> c5fb4cb158e01e44334a160157c3edfb125c1b6d
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -92,21 +76,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.drone.armDisarm(True)
         self.drone.takeoffAsync()
         # self.height = self.drone.getMultirotorState().gps_location.altitude
-<<<<<<< HEAD
-
-        # Manually rotating the drone by 90 degrees (AFTER camera is set to avoid undesired camera rotation)
-        # self.drone.rotateByYawRateAsync(yaw_angle, 1).join()
-
-        # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
-        # self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
-        #self.removeCar()
-        #self.checkForResetCar()
-        self.resetToCar()
-        # Increment the next yaw index
-        # self.next_yaw = (self.next_yaw + 1) % (len(YAW_ROTATIONS_RADIANS))
-        self.next_yaw = random.randint(0, 3)
-        print("Next YAW to be index: ", self.next_yaw)
-=======
         # Angling -60 degrees downward
         self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
         # Set home position and velocity
@@ -114,7 +83,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
         #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
->>>>>>> c5fb4cb158e01e44334a160157c3edfb125c1b6d
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
         self.removeCar()
@@ -381,11 +349,5 @@ class  DroneCarTrackingEnv(AirSimEnv):
         pose.position.x_val = car.position.x_val
         pose.position.y_val = car.position.y_val
         pose.position.z_val = pose.position.z_val - 15
-<<<<<<< HEAD
         # pose.orientation = car.orientation
         self.drone.simSetVehiclePose(airsim.Pose(pose.position, airsim.to_quaternion(0, 0, yaw_radians)), ignore_collision=False)
-=======
-        #pose.orientation = car.orientation
-        self.drone.simSetVehiclePose(pose, ignore_collision=False)
-
->>>>>>> c5fb4cb158e01e44334a160157c3edfb125c1b6d
