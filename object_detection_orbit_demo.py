@@ -145,7 +145,7 @@ class OrbitNavigator:
             self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), orientation))
 
         
-        self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
+        #self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
         return object_detected, x_min, x_max, y_min, y_max
 
     def track_orbits(self, angle):
@@ -217,8 +217,6 @@ def connect_to_client():
     client = airsim.MultirotorClient()
     client.confirmConnection()
     client.enableApiControl(True)
-    client.armDisarm(True)
-    client.takeoffAsync()
     
     return client
 
@@ -244,12 +242,13 @@ def detection(raw_image, model):
 
     return ambulance_found, x_min, x_max, y_min, y_max, conf
 
-def orbit():
+def orbit(model):
     # Overall, the Position and OrbitNavigator classes are both for the orbit part. The rest is for object detection, but you need both.
     # I also changed the detection function slightly so it retuns the confidence level as well.
 
+
     client = connect_to_client()
-    model = load_model()
+    #model = load_model()
     
     # Change the camera position to look ~60 degrees down. I thought it provided a better view for the drone.
     camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0))  #PRY in radians
@@ -263,5 +262,3 @@ def orbit():
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
     return object_detected, x_min, x_max, y_min, y_max
-
-orbit()

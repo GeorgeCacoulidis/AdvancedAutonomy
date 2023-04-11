@@ -21,13 +21,13 @@ MIN_BOX_SIZE = 7000
 BOX_STANDARDIZATION = 50000
 
 class  DroneCarTrackingDemo(AirSimEnv):
-    def __init__(self, ip_address, step_length, image_shape):
+    def __init__(self, ip_address, step_length, image_shape, model):
         super().__init__(image_shape)
         self.step_length = step_length
         self.image_shape = image_shape
         self.negative_reward = 0
         self.threshold_start_time = time.time()
-        self.detectionModel = self.load_model()
+        self.detectionModel = model
         
         self.state = {
             "xMin": 0,
@@ -68,20 +68,24 @@ class  DroneCarTrackingDemo(AirSimEnv):
         #self.drone.takeoffAsync()
         # self.height = self.drone.getMultirotorState().gps_location.altitude
         # Angling -60 degrees downward
-        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
+        
+        #self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
+
         # Set home position and velocity
         #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
         #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
         #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
-        self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+        #self.origin = self.drone.getMultirotorState().kinematics_estimated.position
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
         #responses = self.drone.simGetImages([self.image_request])
         #image = self.transform_obs(responses)
-        self.drone_state = self.drone.getMultirotorState()
+
+        #self.drone_state = self.drone.getMultirotorState()
+
 
         self.getModelResults()
 
