@@ -17,15 +17,8 @@ BOX_LIM_X_MIN = 300
 BOX_LIM_X_MAX = 900
 BOX_LIM_Y_MIN = 200
 BOX_LIM_Y_MAX = 500
-MIN_BOX_SIZE = 1000
+MIN_BOX_SIZE = 7000
 BOX_STANDARDIZATION = 50000
-
-# 90 degrees directly downward
-PITCH_ANGLE = -1.5708
-# 90 degree intervals in radians (90, 180, 270, 0)
-# YAW_ROTATIONS_RADIANS = [1.5708, 3.14159, 4.71239, 0]
-# 90 degree intervals in angles
-# YAW_ROTATIONS_ANGLES = [90, 180, 270, 0]
 
 class  DroneCarTrackingEnv(AirSimEnv):
     def __init__(self, ip_address, step_length, image_shape):
@@ -35,8 +28,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         self.negative_reward = 0
         self.threshold_start_time = time.time()
         self.detectionModel = self.load_model()
-        # self.next_yaw = 0
-
+        
         self.state = {
             "xMin": 0,
             "xMax": 0,
@@ -52,14 +44,13 @@ class  DroneCarTrackingEnv(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(6)
+        self.action_space = spaces.Discrete(5)
         self._setup_flight()
 
-        # Uncomment to remove platform before starting training
-        # listOfSceneObjects = self.drone.simListSceneObjects()
-        # for string in listOfSceneObjects:
-        #         if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
-        #             self.drone.simDestroyObject(string)
+        listOfSceneObjects = self.drone.simListSceneObjects()
+        for string in listOfSceneObjects:
+                if string.startswith("StaticMeshActor_UAID_207BD21BE74E387201_1287001399"):
+                    self.drone.simDestroyObject(string)
 
         self.image_request = airsim.ImageRequest(
             3, airsim.ImageType.DepthPerspective, True, False
@@ -73,31 +64,26 @@ class  DroneCarTrackingEnv(AirSimEnv):
 
     def _setup_flight(self):
         self.drone.reset()
+
+        # keyboard reset used to be here 
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
         self.drone.takeoffAsync()
-
-        # Get the altitude at spawn
         # self.height = self.drone.getMultirotorState().gps_location.altitude
-
-        # For rotation cycles each setup flight
-        # Getting the next YAW rotation
-        # yaw_radians = YAW_ROTATIONS_RADIANS[self.next_yaw]
-        # yaw_angle = YAW_ROTATIONS_ANGLES[self.next_yaw]
-        # Angling pitch and rotating drone's camera for variability because airsim's stabilization settings prevent that
-        # self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, yaw_radians)))
-        # Manually rotating the drone by 90 degrees (AFTER camera is set to avoid undesired camera rotation)
-        # self.drone.rotateByYawRateAsync(yaw_angle, 1).join()
-        # Increment the next yaw index
-        # self.next_yaw = (self.next_yaw + 1) % (len(YAW_ROTATIONS_RADIANS))
-        # print("Next YAW to be index: ", self.next_yaw)
-
-        # Angling PITCH_ANGLE degrees (we need this because airsim bugs after a while and shifts the camera)
-        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(PITCH_ANGLE, 0, 0)))
-        self.resetToCar()
+        # Angling -60 degrees downward
+        self.drone.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.7854, 0, 0)))
+        # Set home position and velocity
+        #self.starting_position = airsim.Vector3r(-0.55265, -3.9786, -19.0225) # should this be declared in init? 
+        #self.drone.moveToPositionAsync(self.starting_position.x_val, self.starting_position.y_val, self.starting_position.z_val, 10).join()
+        #self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
 
         #Setting point of origin
         self.origin = self.drone.getMultirotorState().kinematics_estimated.position
+        self.removeCar()
+
+        pose = self.drone.simGetVehiclePose()
+        pose.position.x_val = pose.position.x_val - 15
+        self.drone.simSetVehiclePose(pose, ignore_collision=False)
 
     # pretty much just the current state of the drone the img, prev position, velocity, prev dist, curr dist, collision
     def _get_obs(self):
@@ -132,9 +118,9 @@ class  DroneCarTrackingEnv(AirSimEnv):
         if rotate == 0:
             quad_vel = self.drone.getMultirotorState().kinematics_estimated.linear_velocity
             self.drone.moveByVelocityBodyFrameAsync(
-                quad_vel.x_val + quad_offset[0],	
-                quad_vel.y_val + quad_offset[1],	
-                quad_vel.z_val + quad_offset[2],
+                quad_offset[0],
+                quad_offset[1],
+                quad_offset[2],
                 .5,
             ).join()
         else:
@@ -225,6 +211,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         print("**********************")
         print("Obs: ", obs)
         print("Reward: ", reward)
+        print("**********************")
         return obs, reward, done, self.state
 
     def reset(self):
@@ -232,7 +219,7 @@ class  DroneCarTrackingEnv(AirSimEnv):
         return self._get_obs()
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', 'test_env_v5s_v4.pt')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3.5.pt')
         print(model)
         return model
 
@@ -252,7 +239,6 @@ class  DroneCarTrackingEnv(AirSimEnv):
         png = cv2.imdecode(airsim.string_to_uint8_array(raw_image), cv2.IMREAD_UNCHANGED)
 
         result = self.detectionModel(png, size = 1216)
-        print("Panda Results: ", result.pandas())
         conf = 0
         x_min = -1
         x_max = -1
@@ -284,14 +270,12 @@ class  DroneCarTrackingEnv(AirSimEnv):
         elif action == 3:
             # Go left
             quad_offset = (0, -self.step_length, 0)
-        elif action == 4:
-            # Go back
-            quad_offset = (-self.step_length, 0, 0)
-        # Uncomment for rotations AND change spaces.Discrete(6) to spaces.Discrete(8)
-        # elif action == 5:
+        # elif action == 4:
+        #     # Turn right
         #     rotate = 1
         #     quad_offset = 30
-        # elif action == 6:
+        # elif action == 5:
+        #     # Turn left
         #     rotate = 1
         #     quad_offset = -30
         else:
@@ -316,29 +300,3 @@ class  DroneCarTrackingEnv(AirSimEnv):
             if not carFound:
                 print("Car was not found. Sleeping for 5ms before next check")
                 time.sleep(0.005)
-    
-    def resetToCar(self):	
-        change_x = 0	
-        change_y = 0	
-        listOfSceneObjects = self.drone.simListSceneObjects()	
-        name = ""	
-        for string in listOfSceneObjects:	
-            if string.startswith("carActor_Lambo"):	
-                name = string	
-                break	
-            	
-        pose = self.drone.simGetVehiclePose()	
-        car = self.drone.simGetObjectPose(name)	
-        # angle = airsim.to_eularian_angles(car.orientation)[2]	
-        # if angle < 0:	
-        #     angle += math.pi	
-        # else:	
-        #     angle = angle-math.pi	
-        #     change_x = 7 * np.sin(angle)	
-        #     change_y = 4 * np.cos(angle)	
-			# Set the new position	
-        pose.position.x_val = car.position.x_val
-        pose.position.y_val = car.position.y_val
-        pose.position.z_val = pose.position.z_val - 15
-        # pose.orientation = car.orientation	
-        self.drone.simSetVehiclePose(pose, ignore_collision=False)
