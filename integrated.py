@@ -91,8 +91,10 @@ def carTracking():
         action, _states = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
         env.render()
-        if(info[-1]["Conf"] < 50):
-            break
+        # Not necessary because drone will already know to stop 
+        #   or keep going when car is gone
+        # if(info[-1]["Conf"] < 50):
+        #     break
 
 def main():
     global mode

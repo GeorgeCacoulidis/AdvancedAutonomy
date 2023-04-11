@@ -57,7 +57,8 @@ class  DroneCarTrackingDemo(AirSimEnv):
         )
 
     def __del__(self):
-        self.drone.reset()
+        # self.drone.reset()
+        print("This is where drone would have been reset in tracking")
 
     def _setup_flight(self):
         #self.drone.reset()

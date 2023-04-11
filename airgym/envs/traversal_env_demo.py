@@ -50,14 +50,20 @@ class  DroneTraversalDemo(AirSimEnv):
         #self.metricsGUI = MetricsGui()
 
     def __del__(self):
-        self.drone.reset()
+        # self.drone.reset()
+        print("This is where drone would have been reset in traversal")
 
     def _setup_flight(self):
         self.negative_reward = 0
         self.threshold_start_time = time.time()
-        self.drone.reset()
+        # self.drone.reset()
         self.drone.enableApiControl(True)
         self.drone.armDisarm(True)
+        self.drone.takeoffAsync()
+
+        # Make the the camera face where the drone is facing (since its stabilized now)
+        camera_pose = self.drone.simGetVehiclePose()
+        self.drone.simSetCameraPose(0, camera_pose)
 
         # Set home position
         #self.starting_position = airsim.Vector3r(0, 0, -19)
