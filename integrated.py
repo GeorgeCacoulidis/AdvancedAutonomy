@@ -22,7 +22,13 @@ carTrackingObs = None
 
 def loadYoloModel():
     global yoloModel
-    yoloModel = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3_5')
+
+    # Hover drone so it doesnt fall while yolo model is loading
+    object_detection_orbit_demo.hover()
+
+    # Load Yolo Model if it has not been loaded yet
+    if not yoloModel:
+        yoloModel = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v4')
 
 def changeToTraversal():
     global env
@@ -109,8 +115,9 @@ def carTracking():
         action, _states = carTrackingModel.predict(carTrackingObs)
         carTrackingObs, rewards, dones, info = env.step(action)
         env.render()
+        print(info)
         # If confidence was not high, switch back to mode 1
-        if(info[0]["Conf"] < 50):
+        if(info[-1]["Conf"] < 0.5):
             mode = 1
             break
 

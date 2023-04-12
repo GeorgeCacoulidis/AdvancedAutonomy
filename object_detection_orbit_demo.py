@@ -10,6 +10,8 @@ import torch
 import pandas
 import argparse
 
+client = None
+
 class Position:
     def __init__(self, pos):
         self.x = pos.x_val
@@ -74,11 +76,22 @@ class OrbitNavigator:
 
         print("arming the drone...")
         self.client.armDisarm(True)
+        startPose = self.client.simGetVehiclePose()
+        startPosePosition = startPose.position
+        # desired height
+        desiredZ = -33.68127
+        # roadOrientation = airsim.Quaternionr(0.9698666930198669, -2.0524288935064305e-9, 5.570834460399965e-9, 0.2436361014842987)
+        # roadOrientationPitch, roadOrientationRoll, roadOrientationYaw = airsim.to_eularian_angles(roadOrientation)
 
-        
+        self.client.moveToPositionAsync(startPosePosition.x_val, startPosePosition.y_val, desiredZ, 2).join()
+        self.client.rotateToYawAsync(30).join()
+        vehicle_Pitch, vehicle_Roll, vehicleYaw = airsim.to_eularian_angles(client.simGetVehiclePose().orientation)
+        client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.785398, vehicle_Roll, vehicleYaw)))
+
         # AirSim uses NED coordinates so negative axis is up.
         start = self.client.getMultirotorState().kinematics_estimated.position
         landed = self.client.getMultirotorState().landed_state
+        
 
         print("already flying so we will orbit at current altitude {}".format(start.z_val))
         z = start.z_val # use current altitude then
@@ -139,10 +152,12 @@ class OrbitNavigator:
             
             self.camera_heading = camera_heading
             #self.client.moveByVelocityZAsync(vx, vy, z, 1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(False, 15))
-            self.client.rotateByYawRateAsync(15, 1).join()
-            yaw = yaw + .2618
-            orientation = airsim.to_quaternion(pitch, roll, yaw)
-            self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), orientation))
+            # self.client.rotateByYawRateAsync(15, 1).join()
+            # yaw = yaw + .2618
+            # orientation = airsim.to_quaternion(pitch, roll, yaw)
+            # self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), orientation))]
+            # vehicle_Pitch, vehicle_Roll, vehicleYaw = airsim.to_eularian_angles(self.client.simGetVehiclePose().orientation)
+            # self.client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.785398, vehicle_Roll, vehicleYaw)))
 
         
         #self.client.moveToPositionAsync(start.x_val, start.y_val, z, 2).join()
@@ -243,16 +258,20 @@ def detection(raw_image, model):
     return ambulance_found, x_min, x_max, y_min, y_max, conf
 
 def orbit(model):
+    global client
     # Overall, the Position and OrbitNavigator classes are both for the orbit part. The rest is for object detection, but you need both.
     # I also changed the detection function slightly so it retuns the confidence level as well.
 
-
-    client = connect_to_client()
+    if not client:
+        client = connect_to_client()
     #model = load_model()
     
-    # Change the camera position to look ~60 degrees down. I thought it provided a better view for the drone.
-    camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0))  #PRY in radians
-    client.simSetCameraPose(0, camera_pose)
+    # Change the camera position to look 45 degrees down. I thought it provided a better view for the drone.
+    # camera_pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-1, 0, 0))  #PRY in radians
+    # client.simSetCameraPose(0, camera_pose)
+
+    vehicle_Pitch, vehicle_Roll, vehicleYaw = airsim.to_eularian_angles(client.simGetVehiclePose().orientation)
+    client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.785398, vehicle_Roll, vehicleYaw)))
 
     # Just to move the drone into the air, only for testing
     #client.moveToPositionAsync(0, 0, -15, 2).join()
@@ -262,3 +281,11 @@ def orbit(model):
     object_detected, x_min, x_max, y_min, y_max = nav.start(model)
 
     return object_detected, x_min, x_max, y_min, y_max
+
+def hover():
+    global client
+
+    if not client:
+        client = connect_to_client()
+    
+    client.takeoffAsync()
