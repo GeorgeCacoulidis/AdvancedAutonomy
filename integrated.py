@@ -16,6 +16,10 @@ env = None
 
 yoloModel = None
 
+changedToCarTracking = False
+carTrackingModel = None
+carTrackingObs = None
+
 def loadYoloModel():
     global yoloModel
     yoloModel = torch.hub.load('ultralytics/yolov5', 'custom', 'police_model_v3_5')
@@ -91,21 +95,29 @@ def detectionModel():
     mode = 2
 
 def carTracking():
+    global mode
+    global carTrackingModel
+    global carTrackingObs
+    global changedToCarTracking
+    
+    if changedToCarTracking == False:
+        carTrackingModel = DQN.load("./car_tracking_mvp.zip")
+        carTrackingObs = env.reset()
+        changedToCarTracking = True
 
-    model = DQN.load("./car_tracking_mvp.zip")
-
-    obs = env.reset()
     while True:
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
+        action, _states = carTrackingModel.predict(carTrackingObs)
+        carTrackingObs, rewards, dones, info = env.step(action)
         env.render()
-        # Not necessary because drone will already know to stop 
-        #   or keep going when car is gone
-        # if(info[-1]["Conf"] < 50):
-        #     break
+        # If confidence was not high, switch back to mode 1
+        if(info[0]["Conf"] < 50):
+            mode = 1
+            break
 
 def main():
     global mode
+    global changedToCarTracking
+
     while True:
         if mode == 0:
             # debug
@@ -120,9 +132,8 @@ def main():
         if(mode == 2):
             # debug
             print("Main mode 2 entered")
-            changeToTracking()
+            if changedToCarTracking == False:
+                changeToTracking()
             carTracking()
-            print("Testing Finished")
-            break
                     
 main()
