@@ -39,7 +39,7 @@ def changeToTraversal():
                 gym.make(
                     "airgym:airsim-drone-traversal-demo-v0",
                     ip_address="127.0.0.1",
-                    step_length=0.25,
+                    step_length=1,
                     image_shape=(19,),
                 )
             )
@@ -54,7 +54,7 @@ def changeToTracking():
                 gym.make(
                     "airgym:airsim-car-tracking-demo-v0",
                     ip_address="127.0.0.1",
-                    step_length=7,
+                    step_length=8,
                     image_shape=(11,),
                     model = yoloModel,
                 )

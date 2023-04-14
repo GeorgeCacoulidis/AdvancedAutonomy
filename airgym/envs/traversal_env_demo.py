@@ -265,7 +265,7 @@ class  DroneTraversalDemo(AirSimEnv):
                 quad_vel.x_val + quad_offset[0],
                 quad_vel.y_val + quad_offset[1],
                 quad_vel.z_val + quad_offset[2],
-                .5,
+                0.5,
             ).join()
         else:
             self.drone.rotateByYawRateAsync(quad_offset, .5)

@@ -118,8 +118,8 @@ class  DroneCarTrackingDemo(AirSimEnv):
                 quad_offset[0],
                 quad_offset[1],
                 quad_offset[2],
-                .5,
-            ).join()
+                1,
+            )
         else:
             self.drone.rotateByYawRateAsync(quad_offset, 1)
         #print(self.state["position"]) # debug 
