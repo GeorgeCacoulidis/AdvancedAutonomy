@@ -83,8 +83,8 @@ class OrbitNavigator:
         # roadOrientation = airsim.Quaternionr(0.9698666930198669, -2.0524288935064305e-9, 5.570834460399965e-9, 0.2436361014842987)
         # roadOrientationPitch, roadOrientationRoll, roadOrientationYaw = airsim.to_eularian_angles(roadOrientation)
 
-        self.client.moveToPositionAsync(startPosePosition.x_val, startPosePosition.y_val, desiredZ, 2).join()
-        self.client.rotateToYawAsync(32).join()
+        self.client.moveToPositionAsync(startPosePosition.x_val, startPosePosition.y_val, desiredZ, 5).join()
+        self.client.rotateToYawAsync(28).join()
         vehicle_Pitch, vehicle_Roll, vehicleYaw = airsim.to_eularian_angles(client.simGetVehiclePose().orientation)
         client.simSetCameraPose("0", airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(-0.785398, vehicle_Roll, vehicleYaw)))
 

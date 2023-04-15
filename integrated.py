@@ -54,7 +54,7 @@ def changeToTracking():
                 gym.make(
                     "airgym:airsim-car-tracking-demo-v0",
                     ip_address="127.0.0.1",
-                    step_length=8,
+                    step_length=6,
                     image_shape=(11,),
                     model = yoloModel,
                 )
@@ -130,6 +130,8 @@ def main():
             # debug
             print("Main mode 0 entered")
             changeToTraversal()
+            print("Called env change")
+            print("calling traversal fncn")
             droneTraversal()
         if mode == 1:
             # debug
