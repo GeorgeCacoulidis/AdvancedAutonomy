@@ -8,9 +8,6 @@ import gym
 from gym import spaces
 from airgym.envs.airsim_env import AirSimEnv
 import time
-from PyQt5.QtWidgets import QApplication
-import sys
-from PyQt5.QtWidgets import QApplication
 import sys
 import pprint
 
