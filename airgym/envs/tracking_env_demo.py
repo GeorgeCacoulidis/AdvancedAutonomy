@@ -28,6 +28,7 @@ class  DroneCarTrackingDemo(AirSimEnv):
         self.negative_reward = 0
         self.threshold_start_time = time.time()
         self.detectionModel = model
+        self.obstacle = 0
         
         self.state = {
             "xMin": 0,
@@ -182,8 +183,11 @@ class  DroneCarTrackingDemo(AirSimEnv):
         else:
             lidar_results[3] = 0
 
+        quad_offset = (0, 0, 0)
+        
         if(lidar_results[0] == 1):
-            quad_offset = (-self.step_length, 0, 0)
+            #quad_offset = (-self.step_length, 0, 0)
+            self.obstacle = 1
         elif(lidar_results[1] == 1):
             quad_offset = (0, -self.step_length, 0)
         elif(lidar_results[3] == 1):
@@ -235,6 +239,8 @@ class  DroneCarTrackingDemo(AirSimEnv):
         if(self.state["BoxSize"] < MIN_BOX_SIZE):
             reward = reward - 100
             done = 0
+        if(self.obstacle == 1):
+            self.state["Conf"] = 0
                     
         return reward, done
 
