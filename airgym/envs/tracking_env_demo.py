@@ -161,7 +161,7 @@ class  DroneCarTrackingDemo(AirSimEnv):
     def sanityCheck(self):
 
         lidar_results = np.zeros(4)
-
+        flag = 0
         lidarData = self.drone.getLidarData(lidar_name="LidarSensor1", vehicle_name= "SimpleFlight")
         if(len(lidarData.point_cloud)):
             lidar_results[0] = 1
@@ -186,8 +186,9 @@ class  DroneCarTrackingDemo(AirSimEnv):
         quad_offset = (0, 0, 0)
         
         if(lidar_results[0] == 1):
-            #quad_offset = (-self.step_length, 0, 0)
-            self.obstacle = 1
+            # quad_offset = (-self.step_length, 0, 0)
+            flag = 1
+            self.state["Conf"] = 0
         elif(lidar_results[1] == 1):
             quad_offset = (0, -self.step_length, 0)
         elif(lidar_results[3] == 1):
@@ -201,6 +202,8 @@ class  DroneCarTrackingDemo(AirSimEnv):
             quad_offset[2],
             .5,
         ).join()
+
+        return flag
 
     def _compute_reward(self):
         reward = 0
@@ -299,30 +302,22 @@ class  DroneCarTrackingDemo(AirSimEnv):
     # based on the action passed it does another action associated
     def interpret_action(self, action):
         rotate = 0
-        self.sanityCheck()
-        if action == 0:
-            # Go straight
-            quad_offset = (self.step_length, 0, 0)
-        elif action == 1:
-            # Go right
-            quad_offset = (0, self.step_length, 0)
-        elif action == 2:
-            # Go down
-            quad_offset = (0, 0, self.step_length)
-        elif action == 3:
-            # Go left
-            quad_offset = (0, -self.step_length, 0)
-        # elif action == 4:
-        #     # Turn right
-        #     rotate = 1
-        #     quad_offset = 30
-        # elif action == 5:
-        #     # Turn left
-        #     rotate = 1
-        #     quad_offset = -30
-        else:
-            # Do nothing
-            quad_offset = (0, 0, 0)
+        quad_offset = (0, 0, 0)
+        flag = self.sanityCheck()
+        if flag == 0:
+            if action == 0:
+                # Go straight
+                quad_offset = (self.step_length, 0, 0)
+            elif action == 1:
+                # Go right
+                quad_offset = (0, self.step_length, 0)
+            elif action == 2:
+                # Go down
+                quad_offset = (0, 0, self.step_length)
+            elif action == 3:
+                # Go left
+                quad_offset = (0, -self.step_length, 0)
+            
 
         print("Action: ", action, " - ", "quad_offset: ", quad_offset)
         return quad_offset, rotate
