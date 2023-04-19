@@ -157,7 +157,46 @@ class  DroneCarTrackingDemo(AirSimEnv):
         
         return dist / 10
 
+    def sanityCheck(self):
 
+        lidar_results = np.zeros(4)
+
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor1", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[0] = 1
+        else:
+            lidar_results[0] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor2", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[1] = 1
+        else:
+            lidar_results[1] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor3", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[2] = 1
+        else:
+            lidar_results[2] = 0
+        lidarData = self.drone.getLidarData(lidar_name="LidarSensor4", vehicle_name= "SimpleFlight")
+        if(len(lidarData.point_cloud)):
+            lidar_results[3] = 1
+        else:
+            lidar_results[3] = 0
+
+        if(lidar_results[0] == 1):
+            quad_offset = (-self.step_length, 0, 0)
+        elif(lidar_results[1] == 1):
+            quad_offset = (0, -self.step_length, 0)
+        elif(lidar_results[3] == 1):
+            quad_offset = (0, self.step_length, 0)
+        else:
+            quad_offset = (0, 0, 0)
+
+        self.drone.moveByVelocityBodyFrameAsync(
+            quad_offset[0],
+            quad_offset[1],
+            quad_offset[2],
+            .5,
+        ).join()
 
     def _compute_reward(self):
         reward = 0
@@ -254,6 +293,7 @@ class  DroneCarTrackingDemo(AirSimEnv):
     # based on the action passed it does another action associated
     def interpret_action(self, action):
         rotate = 0
+        self.sanityCheck()
         if action == 0:
             # Go straight
             quad_offset = (self.step_length, 0, 0)

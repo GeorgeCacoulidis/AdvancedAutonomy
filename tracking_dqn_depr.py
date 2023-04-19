@@ -28,7 +28,7 @@ env = DummyVecEnv(
             gym.make(
                 "airsim-car-tracking-v1",
                 ip_address="127.0.0.1",
-                step_length=7,
+                step_length=10,
                 image_shape=(10,),
             )
         )
