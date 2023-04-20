@@ -182,8 +182,6 @@ class  DroneCarTrackingDemo(AirSimEnv):
             lidar_results[3] = 1
         else:
             lidar_results[3] = 0
-
-        quad_offset = (0, 0, 0)
         
         if(lidar_results[0] == 1):
             # quad_offset = (-self.step_length, 0, 0)
@@ -191,17 +189,20 @@ class  DroneCarTrackingDemo(AirSimEnv):
             self.state["Conf"] = 0
         elif(lidar_results[1] == 1):
             quad_offset = (0, -self.step_length, 0)
+            self.drone.moveByVelocityBodyFrameAsync(
+                quad_offset[0],
+                quad_offset[1],
+                quad_offset[2],
+                .5,
+            ).join()
         elif(lidar_results[3] == 1):
             quad_offset = (0, self.step_length, 0)
-        else:
-            quad_offset = (0, 0, 0)
-
-        self.drone.moveByVelocityBodyFrameAsync(
-            quad_offset[0],
-            quad_offset[1],
-            quad_offset[2],
-            .5,
-        ).join()
+            self.drone.moveByVelocityBodyFrameAsync(
+                quad_offset[0],
+                quad_offset[1],
+                quad_offset[2],
+                .5,
+            ).join()
 
         return flag
 
